@@ -1,0 +1,16 @@
+node_modules/
+.next/
+out/
+.env
+.env.local
+.env.test.local
+.local/
+storage/
+src/generated/
+playwright-report/
+test-results/
+*.tsbuildinfo
+next-env.d.ts
+AGENTS.md
+.vscode/
+tests/e2e/fixtures/*.png

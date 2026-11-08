@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: ecopoint-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ecopoint
+      POSTGRES_PASSWORD: ecopoint_local
+      POSTGRES_DB: ecopoint
+    ports:
+      - "5433:5432"
+    volumes:
+      - ecopoint_pg:/var/lib/postgresql/data
+      - ./scripts/docker-init.sql:/docker-entrypoint-initdb.d/10-test-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecopoint -d ecopoint"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+volumes:
+  ecopoint_pg:

@@ -1,0 +1,476 @@
+// Eco Point · Qarshi karton piloti — ma'lumotlar modeli.
+// Birliklar: vazn — gramm (Int), pul — butun so'm (Int), narx — so'm/kg (Int).
+// Vaqt — UTC'da saqlanadi, Asia/Tashkent (UTC+5) bo'yicha ko'rsatiladi.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SHOP
+  COLLECTOR
+  OPERATOR
+}
+
+enum Party {
+  ECO_POINT
+  COLLECTOR
+  BUYER
+  SHOP
+  OTHER
+}
+
+enum VolumeSize {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+enum RequestStatus {
+  NEW
+  PLANNED
+  COLLECTED
+  SKIPPED
+  CONFIRMED
+  DISPUTED
+  SETTLED
+  CANCELLED
+}
+
+enum TripStatus {
+  PLANNED
+  IN_PROGRESS
+  COLLECTED
+  ACCEPTED
+  AWAITING_PAYMENT
+  CLOSED
+  CANCELLED
+}
+
+enum StopStatus {
+  PENDING
+  COLLECTED
+  SKIPPED
+  REMOVED
+}
+
+enum ConfirmationStatus {
+  CONFIRMED
+  DISPUTED
+}
+
+enum DisputeStatus {
+  OPEN
+  DECIDED
+  RESOLVED
+}
+
+enum Quality {
+  GOOD
+  ACCEPTABLE
+  POOR
+}
+
+enum DiscrepancyDecision {
+  TRIP_ABSORBS
+  OTHER
+}
+
+enum ExpenseType {
+  TRANSPORT
+  LOADING
+  OTHER
+}
+
+enum ObligationType {
+  BUYER_MATERIAL
+  SHOP_PAYOUT
+  SERVICE_FEE
+}
+
+enum PaymentKind {
+  PAYMENT
+  REFUND
+}
+
+enum AttachmentKind {
+  REQUEST_PHOTO
+  SCALE_PHOTO
+  ACCEPTANCE_DOC
+}
+
+model User {
+  id           String   @id @default(cuid())
+  login        String   @unique
+  name         String
+  phone        String?
+  role         Role
+  passwordHash String
+  isDemo       Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  shopId       String?
+  shop         Shop?    @relation(fields: [shopId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions          Session[]
+  requestsCreated   PickupRequest[] @relation("RequestCreatedBy")
+  tripsCollected    Trip[]          @relation("TripCollector")
+  tripsCreated      Trip[]          @relation("TripCreatedBy")
+  weighings         Weighing[]
+  confirmations     ShopConfirmation[]
+  disputesOpened    Dispute[]       @relation("DisputeOpenedBy")
+  disputesDecided   Dispute[]       @relation("DisputeDecidedBy")
+  acceptances       BuyerAcceptance[]
+  expenses          Expense[]
+  payments          Payment[]
+  attachments       Attachment[]
+  auditEvents       AuditEvent[]
+  tariffs           Tariff[]
+
+  @@index([role])
+}
+
+model Session {
+  // id = HMAC-SHA256(SESSION_SECRET, token); tokenning o'zi faqat httpOnly cookie'da.
+  id         String   @id
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Shop {
+  id          String   @id @default(cuid())
+  name        String
+  contactName String?
+  phone       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  users       User[]
+  points      Point[]
+  requests    PickupRequest[]
+  obligations Obligation[]
+}
+
+model Point {
+  id           String   @id @default(cuid())
+  shopId       String
+  shop         Shop     @relation(fields: [shopId], references: [id])
+  name         String
+  address      String
+  district     String
+  landmark     String?
+  contactName  String?
+  contactPhone String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  requests PickupRequest[]
+
+  @@unique([shopId, name])
+  @@index([district])
+}
+
+model Buyer {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  contactName   String?
+  phone         String?
+  address       String?
+  qualityTerms  String
+  minBatchGrams Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  trips Trip[]
+}
+
+model Tariff {
+  id              String   @id @default(cuid())
+  shopPricePerKg  Int
+  buyerPricePerKg Int
+  serviceFee      Int
+  validFrom       DateTime
+  note            String?
+  createdById     String?
+  createdBy       User?    @relation(fields: [createdById], references: [id])
+  createdAt       DateTime @default(now())
+
+  trips Trip[]
+
+  @@index([validFrom])
+}
+
+model PickupRequest {
+  id             String        @id @default(cuid())
+  number         Int           @unique @default(autoincrement())
+  shopId         String
+  shop           Shop          @relation(fields: [shopId], references: [id])
+  pointId        String
+  point          Point         @relation(fields: [pointId], references: [id])
+  createdById    String
+  createdBy      User          @relation("RequestCreatedBy", fields: [createdById], references: [id])
+  readyFrom      DateTime
+  readyTo        DateTime
+  estimatedGrams Int?
+  volume         VolumeSize?
+  note           String?
+  status         RequestStatus @default(NEW)
+  cancelReason   String?
+  clientKey      String        @unique
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  stops       TripStop[]
+  attachments Attachment[]
+
+  @@index([status, readyFrom])
+  @@index([shopId, createdAt])
+}
+
+model Trip {
+  id               String     @id @default(cuid())
+  number           Int        @unique @default(autoincrement())
+  windowStart      DateTime
+  windowEnd        DateTime
+  collectorId      String
+  collector        User       @relation("TripCollector", fields: [collectorId], references: [id])
+  buyerId          String
+  buyer            Buyer      @relation(fields: [buyerId], references: [id])
+  status           TripStatus @default(PLANNED)
+  // Narx kelishuvi nusxasi: keyingi tarif eski reysni o'zgartirmaydi.
+  tariffId         String?
+  tariff           Tariff?    @relation(fields: [tariffId], references: [id])
+  shopPricePerKg   Int
+  buyerPricePerKg  Int
+  serviceFee       Int
+  responsibleParty Party      @default(COLLECTOR)
+  vehicle          String?
+  note             String?
+  cancelReason     String?
+  clientKey        String     @unique
+  createdById      String
+  createdBy        User       @relation("TripCreatedBy", fields: [createdById], references: [id])
+  closedAt         DateTime?
+  version          Int        @default(0)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  stops       TripStop[]
+  acceptance  BuyerAcceptance?
+  expenses    Expense[]
+  obligations Obligation[]
+  disputes    Dispute[]
+  auditEvents AuditEvent[]
+
+  @@index([status, windowStart])
+  @@index([collectorId, windowStart])
+}
+
+model TripStop {
+  id               String     @id @default(cuid())
+  tripId           String
+  trip             Trip       @relation(fields: [tripId], references: [id])
+  requestId        String
+  request          PickupRequest @relation(fields: [requestId], references: [id])
+  sequence         Int
+  status           StopStatus @default(PENDING)
+  // Buyurtma faol (PENDING/COLLECTED) bekatda bo'lsa = requestId, aks holda NULL.
+  // Unique: bitta buyurtma ikkita faol reysga tushmaydi.
+  activeRequestKey String?    @unique
+  skipReason       String?
+  skippedAt        DateTime?
+  collectedAt      DateTime?
+  createdAt        DateTime   @default(now())
+
+  weighing     Weighing?
+  confirmation ShopConfirmation?
+  disputes     Dispute[]
+  obligations  Obligation[]
+
+  @@unique([tripId, requestId])
+  @@index([tripId, sequence])
+}
+
+model Weighing {
+  id           String   @id @default(cuid())
+  stopId       String   @unique
+  stop         TripStop @relation(fields: [stopId], references: [id])
+  grossGrams   Int
+  tareGrams    Int
+  netGrams     Int
+  // Idempotentlik: forma mount'ida yaratilgan UUID.
+  clientKey    String   @unique
+  recordedById String
+  recordedBy   User     @relation(fields: [recordedById], references: [id])
+  recordedAt   DateTime @default(now())
+
+  photos Attachment[]
+}
+
+model ShopConfirmation {
+  id        String             @id @default(cuid())
+  stopId    String             @unique
+  stop      TripStop           @relation(fields: [stopId], references: [id])
+  status    ConfirmationStatus
+  reason    String?
+  userId    String
+  user      User               @relation(fields: [userId], references: [id])
+  createdAt DateTime           @default(now())
+}
+
+model Dispute {
+  id              String        @id @default(cuid())
+  tripId          String
+  trip            Trip          @relation(fields: [tripId], references: [id])
+  stopId          String
+  stop            TripStop      @relation(fields: [stopId], references: [id])
+  // Hal qilinmagan bahs bo'lsa = stopId; RESOLVED bo'lganda NULL. Bitta bekatda bitta ochiq bahs.
+  openKey         String?       @unique
+  status          DisputeStatus @default(OPEN)
+  reason          String
+  claimedNetGrams Int?
+  openedById      String
+  openedBy        User          @relation("DisputeOpenedBy", fields: [openedById], references: [id])
+  decisionText    String?
+  decidedNetGrams Int?
+  decidedById     String?
+  decidedBy       User?         @relation("DisputeDecidedBy", fields: [decidedById], references: [id])
+  decidedAt       DateTime?
+  shopAckAt       DateTime?
+  shopAckById     String?
+  collectorAckAt  DateTime?
+  collectorAckById String?
+  lastRejectComment String?
+  createdAt       DateTime      @default(now())
+  resolvedAt      DateTime?
+
+  @@index([tripId, status])
+}
+
+model BuyerAcceptance {
+  id                String               @id @default(cuid())
+  tripId            String               @unique
+  trip              Trip                 @relation(fields: [tripId], references: [id])
+  acceptedGrams     Int
+  deliveredGrams    Int
+  discrepancyGrams  Int
+  quality           Quality
+  qualityNote       String?
+  discrepancyReason String?
+  decision          DiscrepancyDecision?
+  decisionNote      String?
+  buyerPricePerKg   Int
+  buyerReference    String
+  clientKey         String               @unique
+  acceptedAt        DateTime
+  recordedById      String
+  recordedBy        User                 @relation(fields: [recordedById], references: [id])
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  documents Attachment[]
+}
+
+model Expense {
+  id          String      @id @default(cuid())
+  tripId      String
+  trip        Trip        @relation(fields: [tripId], references: [id])
+  type        ExpenseType
+  amount      Int
+  payer       Party
+  recipient   String?
+  note        String?
+  clientKey   String      @unique
+  createdById String
+  createdBy   User        @relation(fields: [createdById], references: [id])
+  createdAt   DateTime    @default(now())
+
+  @@index([tripId])
+}
+
+model Obligation {
+  id        String         @id @default(cuid())
+  tripId    String
+  trip      Trip           @relation(fields: [tripId], references: [id])
+  // "BUYER_MATERIAL" | "SERVICE_FEE" | "SHOP_PAYOUT:<stopId>"
+  key       String
+  type      ObligationType
+  payer     Party
+  payee     Party
+  shopId    String?
+  shop      Shop?          @relation(fields: [shopId], references: [id])
+  stopId    String?
+  stop      TripStop?      @relation(fields: [stopId], references: [id])
+  amount    Int
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  payments Payment[]
+
+  @@unique([tripId, key])
+  @@index([shopId])
+}
+
+model Payment {
+  id           String      @id @default(cuid())
+  obligationId String
+  obligation   Obligation  @relation(fields: [obligationId], references: [id])
+  kind         PaymentKind @default(PAYMENT)
+  amount       Int
+  paidAt       DateTime
+  method       String?
+  reference    String?
+  clientKey    String      @unique
+  recordedById String
+  recordedBy   User        @relation(fields: [recordedById], references: [id])
+  createdAt    DateTime    @default(now())
+
+  @@index([obligationId])
+}
+
+model Attachment {
+  id           String         @id @default(cuid())
+  kind         AttachmentKind
+  storageKey   String         @unique
+  mimeType     String
+  sizeBytes    Int
+  sha256       String
+  uploadedById String
+  uploadedBy   User           @relation(fields: [uploadedById], references: [id])
+  requestId    String?
+  request      PickupRequest? @relation(fields: [requestId], references: [id])
+  weighingId   String?
+  weighing     Weighing?      @relation(fields: [weighingId], references: [id])
+  acceptanceId String?
+  acceptance   BuyerAcceptance? @relation(fields: [acceptanceId], references: [id])
+  createdAt    DateTime       @default(now())
+}
+
+model AuditEvent {
+  id         String   @id @default(cuid())
+  at         DateTime @default(now())
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id])
+  action     String
+  entityType String
+  entityId   String
+  tripId     String?
+  trip       Trip?    @relation(fields: [tripId], references: [id])
+  reason     String?
+  before     Json?
+  after      Json?
+
+  @@index([entityType, entityId])
+  @@index([tripId, at])
+}

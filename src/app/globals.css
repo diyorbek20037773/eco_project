@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+/* Eco Point dizayn tokenlari (SKILL: ecopoint-interface). */
+@theme {
+  --color-canvas: #f7f7f2; /* iliq oq fon */
+  --color-surface: #ffffff;
+  --color-ink: #17392e; /* asosiy matn, fonda ≈ 11:1 */
+  --color-muted: #4a5f57; /* ikkilamchi matn, fonda ≈ 6.4:1 */
+  --color-line: #d6dbd0;
+  --color-line-strong: #9aa79f;
+
+  --color-primary: #176947; /* asosiy tugma, oq matn bilan ≈ 6.6:1 */
+  --color-primary-hover: #10553a;
+  --color-primary-soft: #e2efe6;
+
+  --color-kraft: #ead8bc; /* karton rangidagi och sirt */
+  --color-kraft-soft: #f4ead9;
+  --color-kraft-line: #b89466;
+
+  --color-amber: #8a5a00; /* kechikish — doim «Kechikmoqda» yozuvi bilan */
+  --color-amber-soft: #fff1d6;
+  --color-danger: #9b1c1c; /* nizo/bahs — doim «Bahs» va ⚠ bilan */
+  --color-danger-soft: #fdecec;
+  --color-info: #1d4b73;
+  --color-info-soft: #e5eef6;
+
+  --font-sans: Inter, "Segoe UI", Roboto, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+
+  --radius-card: 0.875rem;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    overflow-wrap: break-word;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Ko‘rinadigan fokus: 3px yashil halqa + oq ichki chiziq. */
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px #ffffff;
+  }
+
+  /* Raqamlar ustunlarda tekis turadi. */
+  input,
+  table,
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+
+  button,
+  [role="button"],
+  summary {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  summary {
+    list-style: none;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  input[type="date"],
+  input[type="time"] {
+    min-height: 2.75rem;
+  }
+
+  ::placeholder {
+    color: #6b7c74;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
