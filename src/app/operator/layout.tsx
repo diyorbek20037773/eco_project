@@ -6,7 +6,7 @@ import { getOperatorCounts } from "@/server/queries/operator";
 import { routes } from "@/lib/routes";
 import { DemoBanner } from "@/components/ui/DemoBanner";
 import { Logo } from "@/components/ui/Logo";
-import { IconBook, IconHistory, IconList, IconTruck } from "@/components/ui/icons";
+import { IconBox, IconInfo, IconList, IconMapPin, IconShield, IconTruck } from "@/components/ui/icons";
 import { LogoutButton } from "@/components/shell/AppHeader";
 import { BottomNav, SideNav, type NavItem } from "@/components/shell/NavLink";
 
@@ -15,50 +15,46 @@ export default async function OperatorLayout({ children }: { children: ReactNode
   const info: AppInfo = getAppInfo();
   const counts: OperatorDashboardCounts = await getOperatorCounts();
   const tripAttention = counts.awaitingAcceptance + counts.awaitingPayment + counts.openDisputes;
+  const initial = user.name.trim().charAt(0).toUpperCase() || "O";
 
   const items: NavItem[] = [
-    { href: routes.operator.queue, label: "Navbat", icon: <IconList />, badge: counts.queue, badgeLabel: "ta buyurtma navbatda", exact: true },
-    { href: routes.operator.trips, label: "Reyslar", icon: <IconTruck />, badge: counts.activeTrips, badgeLabel: "ta faol reys" },
-    { href: routes.operator.directory, label: "Katalog", icon: <IconBook /> },
-    { href: routes.operator.audit, label: "Audit", icon: <IconHistory /> },
+    { href: routes.operator.queue, label: "Navbat", icon: <IconList size={22} />, badge: counts.queue, badgeLabel: "ta buyurtma navbatda", exact: true },
+    { href: routes.operator.trips, label: "Reyslar", icon: <IconTruck size={22} />, badge: counts.activeTrips, badgeLabel: "ta faol reys" },
+    { href: routes.operator.directory, label: "Katalog", icon: <IconBox size={22} /> },
+    { href: routes.operator.audit, label: "Audit", icon: <IconShield size={22} /> },
   ];
 
   return (
-    <div className="min-h-dvh">
-      {info.demoMode ? <DemoBanner /> : null}
+    <div className="min-h-dvh bg-surface">
+      {info.demoMode ? (
+        <div className="lg:hidden">
+          <DemoBanner />
+        </div>
+      ) : null}
 
       {/* Desktop: chap navigatsiya */}
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-line bg-surface lg:flex" aria-label="Operator menyusi">
-        <div className="px-4 pb-3 pt-4">
+        <div className="px-5 pb-6 pt-6">
           <Link href={routes.operator.queue} className="inline-flex min-h-11 items-center rounded-lg" aria-label="Eco Point — navbat">
-            <Logo />
+            <Logo size={40} className="[&>span:last-child]:text-2xl" />
           </Link>
         </div>
         <nav className="flex-1 px-3" aria-label="Asosiy">
           <SideNav items={items} />
-          <dl className="mt-6 space-y-1 rounded-xl bg-canvas p-3 text-sm">
-            <div className="flex justify-between gap-2">
-              <dt className="text-muted">Qabul kutilmoqda</dt>
-              <dd className="font-semibold tabular-nums">{counts.awaitingAcceptance}</dd>
-            </div>
-            <div className="flex justify-between gap-2">
-              <dt className="text-muted">To‘lov kutilmoqda</dt>
-              <dd className="font-semibold tabular-nums">{counts.awaitingPayment}</dd>
-            </div>
-            <div className="flex justify-between gap-2">
-              <dt className={counts.openDisputes ? "font-semibold text-danger" : "text-muted"}>
-                {counts.openDisputes ? "⚠ " : ""}Ochiq bahslar
-              </dt>
-              <dd className="font-semibold tabular-nums">{counts.openDisputes}</dd>
-            </div>
-          </dl>
         </nav>
-        <div className="border-t border-line p-3">
-          <p className="truncate text-sm font-semibold" title={user.name}>
-            {user.name}
-          </p>
-          <p className="mb-2 text-xs text-muted">Operator</p>
-          <LogoutButton className="w-full justify-center" />
+        <div className="mx-4 border-t border-line py-4">
+          <div className="mb-3 flex items-center gap-3">
+            <span aria-hidden="true" className="flex size-11 shrink-0 items-center justify-center rounded-full bg-mint-soft text-lg font-bold text-ink">
+              {initial}
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate font-semibold" title={user.name}>
+                {user.name}
+              </span>
+              <span className="block text-sm text-muted">Operator</span>
+            </span>
+          </div>
+          <LogoutButton tone="mint" className="w-full justify-center" />
         </div>
       </aside>
 
@@ -80,7 +76,29 @@ export default async function OperatorLayout({ children }: { children: ReactNode
       </header>
 
       <main id="main" className="min-w-0 px-4 pb-24 pt-4 lg:ml-64 lg:px-8 lg:pb-10 lg:pt-6">
-        <div className="mx-auto max-w-[1180px]">{children}</div>
+        <div className="mx-auto max-w-[1360px]">
+          {/* Desktop: sahifa sarlavhasi bilan bir qatorda — pilot hududi va demo belgisi */}
+          <div className="float-right ml-4 hidden items-center gap-4 lg:flex">
+            <span className="inline-flex min-h-11 items-center gap-2 text-lg font-semibold" title="Pilot hududi: bitta hudud">
+              <IconMapPin size={22} />
+              Qarshi
+            </span>
+            {info.demoMode ? (
+              <>
+                <span aria-hidden="true" className="h-8 w-px bg-line" />
+                <span
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-line-strong px-4 text-sm font-semibold"
+                  title="Narxlar, manzillar va tomonlar shartli"
+                >
+                  <IconInfo size={18} />
+                  Demo rejim
+                  <span className="sr-only">: narxlar va manzillar shartli</span>
+                </span>
+              </>
+            ) : null}
+          </div>
+          {children}
+        </div>
       </main>
 
       {/* Mobil: pastki navigatsiya */}

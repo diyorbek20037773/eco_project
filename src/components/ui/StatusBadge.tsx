@@ -17,7 +17,7 @@ import { cx } from "./cx";
 
 const TONE: Record<Tone, string> = {
   neutral: "bg-surface text-ink border-line-strong",
-  info: "bg-info-soft text-info border-info/30",
+  info: "bg-info-soft text-info border-[#7ddde6]",
   progress: "bg-primary-soft text-primary border-primary/30",
   success: "bg-primary text-white border-primary",
   warning: "bg-amber-soft text-amber border-amber/40",
@@ -89,11 +89,13 @@ export function StatusBadge(props: StatusProps & { className?: string }) {
   );
 }
 
+/** Kechikish: to‘ldirilgan sariq belgi, to‘q matn — rang yagona signal emas (soat belgisi + so‘z). */
 export function LateBadge() {
   return (
-    <Badge tone="warning" icon="◷">
-      Kechikmoqda
-    </Badge>
+    <span className="inline-flex max-w-full items-center gap-1 rounded-full border border-sun-line bg-sun px-2.5 py-0.5 text-sm font-semibold leading-6 text-ink">
+      <span aria-hidden="true">◷</span>
+      <span className="min-w-0 [overflow-wrap:normal]">Kechikmoqda</span>
+    </span>
   );
 }
 

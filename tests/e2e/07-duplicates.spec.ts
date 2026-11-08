@@ -131,7 +131,7 @@ test("parallel ikki operator bir buyurtmani ikki reysga qo‘sha olmaydi", async
     for (const s of [opA, opB]) {
       await s.page.goto("/operator");
       await s.page.getByRole("checkbox", { name: `Buyurtma №${r.number} — ${SHOP_NAME.dokon3}ni tanlash` }).check();
-      await s.page.getByRole("link", { name: "Reys tuzish (1)" }).click();
+      await s.page.getByRole("link", { name: /Vaqt va narxlarni sozlash/ }).click();
       await fillTripBuilder(s.page, { collector: s === opA ? "Akmal" : "Bekzod" });
     }
     await Promise.all([

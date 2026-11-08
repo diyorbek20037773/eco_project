@@ -159,3 +159,63 @@ export const IconBook = (p: IconProps) => (
     <path d="M4 19.5V21h16" />
   </Svg>
 );
+export const IconStore = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M3 9h18l-1.5-5h-15z" />
+    <path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0" />
+    <path d="M5 11v9h14v-9M10 20v-5h4v5" />
+  </Svg>
+);
+export const IconBag = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M6 8h12l1 12H5z" />
+    <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+  </Svg>
+);
+export const IconShield = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z" />
+    <path d="m9 12 2 2 4-4" />
+  </Svg>
+);
+export const IconRoute = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="6" cy="18" r="2.5" />
+    <circle cx="18" cy="6" r="2.5" />
+    <path d="M8 16.5 16 7.5" />
+  </Svg>
+);
+export const IconInbox = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M12 3v10M8 9l4 4 4-4" />
+    <path d="M4 13v6h16v-6h-4l-1.5 2h-5L8 13z" />
+  </Svg>
+);
+export const IconCard = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3" y="5" width="18" height="14" rx="2" />
+    <path d="M3 10h18" />
+  </Svg>
+);
+export const IconChat = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1.2-4.4A8 8 0 1 1 21 12z" />
+  </Svg>
+);
+export const IconUser = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 21a8 8 0 0 1 16 0" />
+  </Svg>
+);
+export const IconInfo = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 11v5M12 8h.01" />
+  </Svg>
+);
+export const IconChevronDown = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m6 9 6 6 6-6" />
+  </Svg>
+);

@@ -21,8 +21,16 @@
   --color-amber-soft: #fff1d6;
   --color-danger: #9b1c1c; /* nizo/bahs — doim «Bahs» va ⚠ bilan */
   --color-danger-soft: #fdecec;
-  --color-info: #1d4b73;
-  --color-info-soft: #e5eef6;
+  --color-info: #0b4a52; /* «Yangi» — moviy-yashil (cyan) pill, to‘q matn */
+  --color-info-soft: #cdf5f8;
+
+  /* Operator paneli aksenti (maket): yorqin yashil — faqat to‘q matn bilan (≈ 6:1). */
+  --color-mint: #2ed47a;
+  --color-mint-hover: #22bf6a;
+  --color-mint-soft: #e8faf0;
+  --color-mint-line: #a7ebc5;
+  --color-sun: #ffd84d; /* «Kechikmoqda» to‘ldirilgan belgi, to‘q matn bilan */
+  --color-sun-line: #e9b800;
 
   --font-sans: Inter, "Segoe UI", Roboto, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
 

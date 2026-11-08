@@ -61,7 +61,7 @@ test("qoldirish (sabab bilan) → navbatda «Qoldirildi» → boshqa reysga qayt
     await selectInQueue(op.page, [{ number: r.number, shopName: SHOP_NAME.dokon3 }]);
     const flagged = op.page.getByRole("row").filter({ hasText: `Skip ${tag}` });
     await expect(flagged).toContainText("Qoldirildi: Karton tayyor emas");
-    await op.page.getByRole("link", { name: "Reys tuzish (1)" }).click();
+    await op.page.getByRole("link", { name: /Vaqt va narxlarni sozlash/ }).click();
     await fillTripBuilder(op.page, { collector: "Bekzod" });
     await expect(op.page.getByText(/^Qoldirilgan: Karton tayyor emas/)).toBeVisible();
     const t2 = await submitTripBuilder(op.page);

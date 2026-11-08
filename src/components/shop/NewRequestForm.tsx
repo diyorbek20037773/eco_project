@@ -50,6 +50,7 @@ export function NewRequestForm({ points, today, tomorrow }: { points: PointDTO[]
       photoId: "",
     },
     resetOnSuccess: false,
+    flash: false,
     successMessage: "Buyurtma yuborildi.",
     onSuccess: (data) => router.push(`${routes.shop.request(data.requestId)}?created=1`),
   });

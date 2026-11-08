@@ -7,9 +7,9 @@
     "node": ">=22.12"
   },
   "scripts": {
-    "dev": "next dev -p 3000",
+    "dev": "next dev",
     "build": "next build",
-    "start": "next start -p 3000",
+    "start": "prisma migrate deploy && next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "db:local": "node scripts/local-pg.mjs start",
@@ -34,8 +34,10 @@
     "dotenv": "18.0.9",
     "next": "16.4.5",
     "pg": "8.23.1",
+    "prisma": "7.10.1",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "tsx": "4.23.15",
     "zod": "4.6.7"
   },
   "devDependencies": {
@@ -47,9 +49,7 @@
     "@types/react-dom": "19.3.0",
     "eslint": "9.39.5",
     "eslint-config-next": "16.4.5",
-    "prisma": "7.10.1",
     "tailwindcss": "4.3.5",
-    "tsx": "4.23.15",
     "typescript": "5.9.3",
     "vite": "7.3.7",
     "vitest": "5.1.0"

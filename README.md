@@ -41,8 +41,18 @@ npm run dev                      # http://localhost:3000
 Production rejimi:
 ```powershell
 npm run build
-npm run start                    # http://localhost:3000
+npm run start                    # avval migratsiyalarni qo‘llaydi, so‘ng http://localhost:3000
 ```
+`npm run start` platforma bergan `PORT` o‘zgaruvchisini ishlatadi (berilmasa 3000).
+
+### Serverga / konteynerga joylash
+1. Muhit o‘zgaruvchilari: `DATABASE_URL`, `SESSION_SECRET` (≥ 32 tasodifiy belgi — standart qiymat bilan ilova ishlamaydi), `APP_URL` (tashqi manzil), `STORAGE_DIR` (doimiy diskdagi papka — aks holda qayta joylashda rasmlar yo‘qoladi), `NODE_ENV=production`.
+2. Build: `npm ci && npm run build`. Start: `npm run start` (migratsiyalar avtomatik qo‘llanadi).
+3. **Production’da demo akkauntlar ishlamaydi** (talab bo‘yicha). Birinchi operatorni server terminalida yarating:
+   ```bash
+   NEW_USER_PASSWORD='kamida-10-belgili-parol' npm run user:create -- --role OPERATOR --login operator1 --name "Operator ismi"
+   ```
+   Do‘konlar, ularning xodimlari, yig‘uvchilar, xaridor va tarifni operator «Katalog» bo‘limida qo‘shadi.
 Yozuvlar PostgreSQL’da, rasmlar `STORAGE_DIR` (`./storage/uploads`) papkasida — ilova qayta ishga tushganda saqlanadi. Rasmlar ochiq papkada emas, faqat ruxsati bor foydalanuvchiga `/api/files/<id>` orqali beriladi.
 
 ## 4. `.env` kalitlari

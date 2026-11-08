@@ -180,7 +180,7 @@ for (const width of WIDTHS) {
         { name: "shop-request", page: shop.page, url: `/shop/requests/${ids.requestId}`, ready: (p) => expect(p.getByRole("heading", { level: 1 })).toBeVisible() },
         { name: "collector-today", page: col.page, url: "/collector", ready: (p) => expect(p.getByRole("link", { name: "Tortishni kiritish" })).toBeVisible() },
         { name: "collector-stop", page: col.page, url: `/collector/stops/${ids.stopId}`, ready: (p) => expect(p.getByRole("button", { name: "Tortishni saqlash" })).toBeVisible() },
-        { name: "operator-queue", page: op.page, url: "/operator", ready: (p) => expect(p.getByRole("heading", { name: "Navbat", level: 1 })).toBeVisible() },
+        { name: "operator-queue", page: op.page, url: "/operator", ready: (p) => expect(p.getByRole("heading", { name: "Buyurtmalar navbati", level: 1 })).toBeVisible() },
         { name: "operator-trip-new", page: op.page, url: `/operator/trips/new?ids=${ids.newTripIds}`, ready: (p) => expect(p.getByRole("button", { name: /Reysni saqlash/ })).toBeVisible() },
         { name: "operator-trip", page: op.page, url: `/operator/trips/${ids.tripId}`, ready: (p) => expect(p.getByRole("heading", { name: /^Reys №/, level: 1 })).toBeVisible() },
         { name: "operator-directory", page: op.page, url: "/operator/directory", ready: (p) => expect(p.getByRole("heading", { name: "Katalog", level: 1 })).toBeVisible() },

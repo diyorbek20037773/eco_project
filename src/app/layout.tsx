@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { FlashToast } from "@/components/ui/FlashToast";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           Asosiy qismga o‘tish
         </a>
         {children}
+        <FlashToast />
       </body>
     </html>
   );

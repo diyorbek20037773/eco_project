@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import type { TripBuilderOptions } from "@/server/contract";
 import { getTripBuilderOptions } from "@/server/queries/operator";
-import { tashkentToday, utcToTashkentParts } from "@/domain/time";
+import { tashkentToday } from "@/domain/time";
+import { defaultTripWindow } from "@/components/operator/trip-defaults";
 import { routes } from "@/lib/routes";
 import { PageTitle } from "@/components/ui/Card";
 import { LinkButton, TextLink } from "@/components/ui/Button";
@@ -51,13 +52,7 @@ export default async function NewTripPage({ searchParams }: { searchParams: Prom
   }
 
   // Standart vaqt: tanlangan buyurtmalarning eng erta tayyor vaqti va eng kech tugashi (Toshkent).
-  const froms = options.selected.map((s) => utcToTashkentParts(s.readyFrom));
-  const tos = options.selected.map((s) => utcToTashkentParts(s.readyTo));
-  const earliest = froms.reduce((a, b) => (`${b.date} ${b.time}` < `${a.date} ${a.time}` ? b : a));
-  const latestTo = tos.filter((t) => t.date === earliest.date).reduce((a, b) => (b.time > a.time ? b : a), { date: earliest.date, time: "00:00" });
-  const date = earliest.date < today ? today : earliest.date;
-  const fromTime = earliest.date < today ? "09:00" : earliest.time;
-  const toTime = latestTo.time > fromTime ? latestTo.time : fromTime < "18:00" ? "18:00" : "23:59";
+  const { date, fromTime, toTime } = defaultTripWindow(options.selected, today);
   const missing = ids.length - options.selected.length;
 
   return (

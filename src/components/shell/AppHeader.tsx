@@ -7,13 +7,14 @@ import { Logo } from "@/components/ui/Logo";
 import { IconLogout } from "@/components/ui/icons";
 import { cx } from "@/components/ui/cx";
 
-export function LogoutButton({ className }: { className?: string }) {
+export function LogoutButton({ className, tone = "default" }: { className?: string; tone?: "default" | "mint" }) {
   return (
     <form action={logoutAction}>
       <button
         type="submit"
         className={cx(
-          "inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-line-strong bg-surface px-3 text-sm font-semibold text-ink hover:bg-primary-soft",
+          "inline-flex min-h-11 items-center gap-1.5 rounded-xl border bg-surface px-3 text-sm font-semibold text-ink",
+          tone === "mint" ? "border-2 border-mint hover:bg-mint-soft" : "border-line-strong hover:bg-primary-soft",
           className,
         )}
       >

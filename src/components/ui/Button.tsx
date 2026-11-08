@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { AnchorHTMLAttributes, ComponentPropsWithRef, ReactNode } from "react";
 import { cx } from "./cx";
 
-export type ButtonVariant = "primary" | "secondary" | "danger" | "ghost" | "kraft";
+export type ButtonVariant = "primary" | "secondary" | "danger" | "ghost" | "kraft" | "mint";
 export type ButtonSize = "sm" | "md" | "lg" | "xl";
 
 const VARIANT: Record<ButtonVariant, string> = {
@@ -11,6 +11,7 @@ const VARIANT: Record<ButtonVariant, string> = {
   danger: "bg-surface text-danger border border-danger hover:bg-danger-soft",
   ghost: "bg-transparent text-primary border border-transparent hover:bg-primary-soft underline-offset-2",
   kraft: "bg-kraft text-ink border border-kraft-line hover:bg-kraft-soft",
+  mint: "bg-mint text-ink font-bold border border-mint hover:bg-mint-hover",
 };
 
 // Barcha o‘lchamlar ≥ 44px bosish maydoni.

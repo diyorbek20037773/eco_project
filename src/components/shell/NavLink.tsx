@@ -33,8 +33,8 @@ export function SideNav({ items }: { items: NavItem[] }) {
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cx(
-                "flex min-h-11 items-center gap-3 rounded-xl px-3 font-semibold",
-                active ? "bg-primary text-white" : "text-ink hover:bg-primary-soft",
+                "flex min-h-12 items-center gap-3 rounded-xl px-3 text-[17px] font-semibold",
+                active ? "bg-mint-soft text-ink" : "text-ink hover:bg-mint-soft/60",
               )}
             >
               {item.icon}
@@ -42,8 +42,8 @@ export function SideNav({ items }: { items: NavItem[] }) {
               {item.badge ? (
                 <span
                   className={cx(
-                    "min-w-7 rounded-full px-2 text-center text-sm tabular-nums",
-                    active ? "bg-white text-primary" : "bg-kraft text-ink",
+                    "min-w-7 rounded-full px-2 text-center text-sm font-bold leading-7 tabular-nums",
+                    "bg-mint text-ink",
                   )}
                 >
                   {item.badge}
@@ -72,14 +72,14 @@ export function BottomNav({ items }: { items: NavItem[] }) {
               aria-current={active ? "page" : undefined}
               className={cx(
                 "relative flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-xs font-semibold",
-                active ? "text-primary" : "text-muted hover:text-ink",
+                active ? "text-ink" : "text-muted hover:text-ink",
               )}
             >
-              <span aria-hidden="true" className={cx("h-1 w-8 rounded-full", active ? "bg-primary" : "bg-transparent")} />
+              <span aria-hidden="true" className={cx("h-1 w-8 rounded-full", active ? "bg-mint" : "bg-transparent")} />
               {item.icon}
               <span className="max-w-full truncate">{item.label}</span>
               {item.badge ? (
-                <span className="absolute right-[18%] top-1.5 min-w-5 rounded-full bg-kraft px-1 text-center text-[11px] leading-5 text-ink tabular-nums">
+                <span className="absolute right-[18%] top-1.5 min-w-5 rounded-full bg-mint px-1 text-center text-[11px] font-bold leading-5 text-ink tabular-nums">
                   {item.badge}
                   {item.badgeLabel ? <span className="sr-only"> {item.badgeLabel}</span> : null}
                 </span>

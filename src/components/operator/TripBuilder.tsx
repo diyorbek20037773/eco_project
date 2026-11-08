@@ -56,6 +56,7 @@ export function TripBuilder({
       note: "",
     },
     resetOnSuccess: false,
+    flash: false,
     successMessage: "Reys tuzildi. Reys sahifasi ochilmoqda…",
     onSuccess: (data) => router.push(routes.operator.trip(data.tripId)),
   });

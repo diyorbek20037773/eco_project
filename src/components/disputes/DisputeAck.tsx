@@ -21,7 +21,7 @@ export function DisputeAck({ dispute, context }: { dispute: DisputeDTO; context:
 
   const agree = useActionForm<Record<string, never>, { status: DisputeStatus }>({
     initialValues: {},
-    successMessage: (d) => (d.status === "RESOLVED" ? "Bahs hal qilindi." : "Roziligingiz qayd etildi. Ikkinchi tomon roziligi kutilmoqda."),
+    successMessage: (d) => (d.status === "RESOLVED" ? "Bahs yopildi — hisob yakuniy vazn bo‘yicha qayta hisoblanadi." : "Roziligingiz qayd etildi. Ikkinchi tomon roziligi kutilmoqda."),
     onSuccess: (d) => setResult(d.status),
   });
   const reject = useActionForm<{ comment: string }, { status: DisputeStatus }>({

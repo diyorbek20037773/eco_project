@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import type { ActionResult } from "@/server/contract";
 import { uzText } from "@/domain/labels";
 import { newClientKey } from "./client-key";
+import { flash } from "./flash";
 import { clearDraft, parseDraft, readDraftRaw, subscribeDrafts, type Draft } from "./draft";
 
 export type FormValues = Record<string, string>;
@@ -24,6 +25,12 @@ export interface UseActionFormOptions<V extends FormValues, T> {
   resetOnSuccess?: boolean;
   /** Muvaffaqiyatdan keyin router.refresh() (default: true) */
   refresh?: boolean;
+  /**
+   * Muvaffaqiyat xabari ko‘rinib turgan forma ekrandan olib tashlansa (masalan, refresh’dan keyin
+   * karta yo‘qolsa), xabar sahifa toast’iga o‘tadi (default: true). Boshqa sahifaga o‘tadigan
+   * formalarda false.
+   */
+  flash?: boolean;
 }
 
 export type FormRunner<V extends FormValues, T> = (ctx: { clientKey: string; values: V }) => Promise<ActionResult<T>>;
@@ -63,6 +70,17 @@ export function useActionForm<V extends FormValues, T = undefined>(opts: UseActi
   const [data, setData] = useState<T | null>(null);
   const [touched, setTouched] = useState(false);
   const lastRun = useRef<FormRunner<V, T> | null>(null);
+  const shownSuccess = useRef<string | null>(null);
+  const flashOnUnmount = opts.flash !== false;
+  useEffect(() => {
+    shownSuccess.current = phase === "success" && message ? message : null;
+  }, [phase, message]);
+  useEffect(() => {
+    if (!flashOnUnmount) return;
+    return () => {
+      if (shownSuccess.current) flash(shownSuccess.current);
+    };
+  }, [flashOnUnmount]);
   const inFlight = useRef(false);
 
   const rawDraft = useSyncExternalStore(

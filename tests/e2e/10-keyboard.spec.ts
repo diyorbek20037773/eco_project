@@ -73,6 +73,9 @@ test("klaviatura: do‘kon «Olib keting» formasini faqat klaviatura bilan yubo
     await page.getByLabel(/^Parol/).fill("EcoDemo2026!");
     await page.getByLabel(/^Parol/).press("Enter");
     await page.waitForURL(/\/shop$/);
+    // Sahifa to‘liq yuklanib, gidratsiya tugashini kutamiz — kech navigatsiya fokusni boshiga qaytarmasin.
+    await expect(page.getByRole("link", { name: "Olib keting" })).toBeVisible();
+    await page.waitForLoadState("networkidle");
     await tabUntil(page, 'a[href="/shop/new"]', 25);
     await page.keyboard.press("Enter");
     await page.waitForURL(/\/shop\/new$/);

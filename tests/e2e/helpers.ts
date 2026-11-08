@@ -127,7 +127,7 @@ export async function selectInQueue(page: Page, picks: QueuePick[]): Promise<voi
   for (const p of picks) {
     await page.getByRole("checkbox", { name: `Buyurtma №${p.number} — ${p.shopName}ni tanlash` }).check();
   }
-  await expect(page.getByRole("heading", { name: new RegExp(`Tanlangan bekatlar \\(${picks.length}\\)`) })).toBeVisible();
+  await expect(page.getByText(`${picks.length} ta nuqta`, { exact: true })).toBeVisible();
 }
 
 async function selectOptionByText(select: Locator, text: string): Promise<void> {
@@ -156,7 +156,7 @@ export async function submitTripBuilder(page: Page): Promise<{ tripId: string; t
 
 export async function buildTripUI(page: Page, picks: QueuePick[], collector: "Akmal" | "Bekzod"): Promise<{ tripId: string; tripNumber: number }> {
   await selectInQueue(page, picks);
-  await page.getByRole("link", { name: `Reys tuzish (${picks.length})` }).click();
+  await page.getByRole("link", { name: /Vaqt va narxlarni sozlash/ }).click();
   await fillTripBuilder(page, { collector });
   return submitTripBuilder(page);
 }
