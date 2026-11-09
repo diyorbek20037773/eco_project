@@ -199,6 +199,25 @@ export async function runSeed(opts: { log?: (msg: string) => void; now?: Date } 
   }
   const closed = must(await closeTrip(operator, { tripId: sampleTrip.id }), "yopish");
 
+  // Namunaviy reysning qolgan vaqtlarini ham kechaga moslash (faqat birinchi yaratishda):
+  // audit tarixi, xarajat, qabul va reys yaratilgan vaqt «Kecha» bo‘lib ko‘rinsin.
+  if (freshSample) {
+    const sampleRequestIds = stops.map((s) => s.requestId);
+    const events = await prisma.auditEvent.findMany({
+      where: { OR: [{ tripId: sampleTrip.id }, { entityId: { in: sampleRequestIds } }] },
+      orderBy: [{ at: "asc" }, { id: "asc" }],
+      select: { id: true },
+    });
+    const start = tashkentToUtc(yesterday, "08:00")!.getTime();
+    const step = Math.max(1, Math.floor((9 * 60 * 60 * 1000) / Math.max(1, events.length))); // 08:00–17:00 oralig‘ida
+    for (const [i, e] of events.entries()) {
+      await prisma.auditEvent.update({ where: { id: e.id }, data: { at: new Date(start + i * step) } });
+    }
+    await prisma.trip.update({ where: { id: sampleTrip.id }, data: { createdAt: tashkentToUtc(yesterday, "08:30")! } });
+    await prisma.expense.updateMany({ where: { tripId: sampleTrip.id }, data: { createdAt: tashkentToUtc(yesterday, "15:30")! } });
+    await prisma.buyerAcceptance.updateMany({ where: { tripId: sampleTrip.id }, data: { createdAt: tashkentToUtc(yesterday, "16:05")! } });
+  }
+
   // 5. Bugungi 3 ta yangi buyurtma
   const todayReqs = [
     { n: 1, login: "dokon1", pointId: "seed-point-nur-nasaf", from: "14:00", to: "16:00", kg: "45", volume: undefined, note: "Orqa eshikdan olib keting (shartli)" },

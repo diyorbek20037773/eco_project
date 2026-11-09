@@ -176,7 +176,9 @@ test("asosiy oqim: buyurtma → reys → tortish → tasdiq → qabul → qisman
             ? obligationCard(op.page, "Eco Point xizmat haqi")
             : obligationCard(op.page, "Do‘konga karton haqi", o.key.endsWith(stop1) ? SHOP_NAME.dokon1 : SHOP_NAME.dokon2);
       await payUI(card, String(remaining));
-      await expect(card.getByText("To‘lov qayd etildi. Qoldiq: 0 so‘m.")).toBeVisible();
+      // To‘liq to‘langach forma kartadan yo‘qoladi — xabar sahifa toast’ida (role=status) ko‘rinadi.
+      await expect(op.page.getByText("To‘lov qayd etildi. Qoldiq: 0 so‘m.").first()).toBeVisible();
+      await expect.poll(async () => (await obligations(tripId)).find((x) => x.key === o.key)?.paid).toBe(o.amount);
     }
     obs = await obligations(tripId);
     for (const o of obs) expect(o.paid, o.key).toBe(o.amount);

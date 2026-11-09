@@ -100,8 +100,7 @@ export function CancelTripForm({ tripId }: { tripId: string }) {
     );
   }
   return (
-    <form
-      className="space-y-3"
+    <form noValidate className="space-y-3"
       onSubmit={(e) => {
         e.preventDefault();
         const reason = form.values.reason.trim();
@@ -136,13 +135,12 @@ export function DecideDisputeForm({ disputeId, suggestedGrams }: { disputeId: st
   const kg = form.values.decidedKg.trim();
   const kgError = kg && parseKgToGrams(kg) === null ? "Vaznni raqamda kiriting, masalan 175,5." : null;
   return (
-    <form
-      className="space-y-3"
+    <form noValidate className="space-y-3"
       onSubmit={(e) => {
         e.preventDefault();
         const text = form.values.decisionText.trim();
         const errors: Record<string, string> = {};
-        if (text.length < 3) errors.decisionText = "Qaror matnini yozing (sabab va asos).";
+        if (text.length < 5) errors.decisionText = "Qaror matnini yozing (kamida 5 belgi: sabab va asos).";
         const g = parseKgToGrams(kg);
         if (g === null || g <= 0) errors.decidedKg = "Yakuniy sof vaznni kiriting.";
         if (Object.keys(errors).length) {

@@ -43,8 +43,7 @@ export function ConfirmWeighing({ stopId, netGrams }: { stopId: string; netGrams
     const claimed = dispute.values.claimedKg.trim();
     const claimedError = claimed && parseKgToGrams(claimed) === null ? "Vaznni raqamda kiriting, masalan 175,5." : null;
     return (
-      <form
-        className="space-y-3"
+      <form noValidate className="space-y-3"
         onSubmit={(e) => {
           e.preventDefault();
           const reason = dispute.values.reason.trim();

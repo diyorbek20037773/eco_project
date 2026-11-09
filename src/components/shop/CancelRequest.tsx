@@ -27,8 +27,7 @@ export function CancelRequest({ requestId, number }: { requestId: string; number
   }
 
   return (
-    <form
-      className="space-y-3"
+    <form noValidate className="space-y-3"
       onSubmit={form.handleSubmit(({ values }) => cancelPickupRequest({ requestId, reason: values.reason.trim() || undefined }))}
     >
       <TextInput

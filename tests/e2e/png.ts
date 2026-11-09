@@ -26,6 +26,33 @@ function chunk(type: string, data: Buffer): Buffer {
   return Buffer.concat([len, td, crc]);
 }
 
+/**
+ * Siqilmaydigan (tasodifiy piksel) haqiqiy PNG — katta hajmli yuklama sinovi uchun.
+ * Hajm taxminan width × height × 3 bayt bo'ladi.
+ */
+export function makeNoisyPng(width: number, height: number): Buffer {
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(width, 0);
+  ihdr.writeUInt32BE(height, 4);
+  ihdr[8] = 8;
+  ihdr[9] = 2;
+  const rowLen = 1 + width * 3;
+  const raw = Buffer.alloc(rowLen * height);
+  let seed = 0x2f6b9a1d;
+  for (let y = 0; y < height; y++) {
+    raw[y * rowLen] = 0; // filtr: yo'q
+    for (let i = 1; i < rowLen; i++) {
+      // xorshift32 — deterministik, tez
+      seed ^= seed << 13;
+      seed ^= seed >>> 17;
+      seed ^= seed << 5;
+      raw[y * rowLen + i] = seed & 0xff;
+    }
+  }
+  const signature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  return Buffer.concat([signature, chunk("IHDR", ihdr), chunk("IDAT", deflateSync(raw, { level: 1 })), chunk("IEND", Buffer.alloc(0))]);
+}
+
 export function makePng(width: number, height: number, rgb: [number, number, number]): Buffer {
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(width, 0);

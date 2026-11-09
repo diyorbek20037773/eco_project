@@ -205,7 +205,8 @@ export async function loadTripDetail(actor: Actor, id: string): Promise<TripDeta
     include: {
       collector: { select: { id: true, name: true, phone: true } },
       buyer: true,
-      stops: { where: { status: { not: "REMOVED" } }, orderBy: { sequence: "asc" }, include: stopInclude },
+      // REMOVED bekatlar ham yuklanadi — sahifa ularni «Reysdan olib tashlangan» deb ko‘rsatadi; hisobda faqat faollar.
+      stops: { orderBy: { sequence: "asc" }, include: stopInclude },
       acceptance: {
         include: {
           recordedBy: { select: { name: true } },
@@ -219,9 +220,10 @@ export async function loadTripDetail(actor: Actor, id: string): Promise<TripDeta
   if (!t) return null;
 
   const stops = t.stops.map(toStop);
-  const deliveredStops = t.stops
+  const activeStops = t.stops.filter((s) => s.status !== "REMOVED");
+  const deliveredStops = activeStops
     .map((s) => ({ s, net: stopEffectiveNet(s) }))
-    .filter((x): x is { s: (typeof t.stops)[number]; net: number } => x.net !== null)
+    .filter((x): x is { s: (typeof activeStops)[number]; net: number } => x.net !== null)
     .map(({ s, net }) => ({ stopId: s.id, shopId: s.request.shopId, shopName: s.request.point.shop.name, netGrams: net }));
   const deliveredGrams = deliveredStops.reduce((sum, s) => sum + s.netGrams, 0);
 
@@ -238,7 +240,7 @@ export async function loadTripDetail(actor: Actor, id: string): Promise<TripDeta
 
   const obligations = sortObligations(t.obligations.map(toObligation));
   const closeChecks = evaluateCloseChecks({
-    stops: t.stops.map((s) => ({ status: s.status, confirmation: s.confirmation?.status ?? null, disputes: s.disputes })),
+    stops: activeStops.map((s) => ({ status: s.status, confirmation: s.confirmation?.status ?? null, disputes: s.disputes })),
     hasAcceptance: !!t.acceptance,
     obligations: obligations.map((o) => ({ amount: o.amount, paid: o.paid })),
   });

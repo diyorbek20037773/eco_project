@@ -98,19 +98,23 @@ export default async function OperatorTripPage({ params }: { params: Promise<{ i
               ...(t.closedAt ? [{ label: "Yopilgan", value: formatDateTime(t.closedAt) }] : []),
             ]}
           />
-          <div className="pt-2">
-            <TelegramShareButton url={t.shareUrl} text={`Eco Point · Reys №${t.number} (${formatWindow(t.windowStart, t.windowEnd)})`} />
-          </div>
+          {t.status !== "CANCELLED" ? (
+            <div className="pt-2">
+              <TelegramShareButton url={t.shareUrl} text={`Eco Point · Reys №${t.number} (${formatWindow(t.windowStart, t.windowEnd)})`} />
+            </div>
+          ) : null}
         </Card>
-        <Card className="space-y-2" tone={t.status === "AWAITING_PAYMENT" ? "warning" : "surface"}>
-          <h2 className="text-lg font-bold">Yopish shartlari</h2>
-          <CloseTripPanel tripId={t.id} checks={t.closeChecks} canClose={t.allowed.close} />
-        </Card>
+        {t.status !== "CANCELLED" ? (
+          <Card className="space-y-2" tone={t.status === "AWAITING_PAYMENT" ? "warning" : "surface"}>
+            <h2 className="text-lg font-bold">Yopish shartlari</h2>
+            <CloseTripPanel tripId={t.id} checks={t.closeChecks} canClose={t.allowed.close} />
+          </Card>
+        ) : null}
       </div>
 
       {/* Bekatlar */}
       <Section id="stops" title={`Bekatlar (${activeStops.length})`}>
-        {activeStops.length === 0 ? <p className="text-muted">Bekat yo‘q.</p> : null}
+        {activeStops.length === 0 && removedStops.length === 0 ? <p className="text-muted">Bekat yo‘q.</p> : null}
         <ol className="grid gap-3 xl:grid-cols-2">
           {activeStops.map((s) => (
             <li key={s.id}>
@@ -160,7 +164,10 @@ export default async function OperatorTripPage({ params }: { params: Promise<{ i
           ))}
         </ol>
         {removedStops.length > 0 ? (
-          <p className="text-sm text-muted">Reysdan olib tashlangan: {removedStops.map((s) => `№${s.request.number} ${s.point.shopName}`).join(", ")}</p>
+          <p className="text-sm text-muted">
+            {t.status === "CANCELLED" ? "Bekor qilingan reysdagi buyurtmalar (navbatga qaytarildi): " : "Reysdan olib tashlangan: "}
+            {removedStops.map((s) => `№${s.request.number} ${s.point.shopName}`).join(", ")}
+          </p>
         ) : null}
         {t.allowed.reorder && pendingStops.length > 0 ? (
           <Disclosure summary="Bekatlar tartibini o‘zgartirish yoki olib tashlash">

@@ -51,8 +51,7 @@ export function DisputeAck({ dispute, context }: { dispute: DisputeDTO; context:
           {result === "RESOLVED" ? "Bahs yopildi, hisob yakuniy vazn bo‘yicha qayta hisoblanadi." : result === "rejected" ? "Operator bahsni qayta ko‘radi." : "Ikkinchi tomon roziligi kutilmoqda."}
         </Notice>
       ) : mode === "reject" ? (
-        <form
-          className="space-y-3"
+        <form noValidate className="space-y-3"
           onSubmit={(e) => {
             e.preventDefault();
             const comment = reject.values.comment.trim();
