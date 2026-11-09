@@ -126,7 +126,11 @@ const uz = {
     picked: "Tanlandi ✓",
     roleSHOP: "Do‘kon xodimi",
     roleCOLLECTOR: "Yig‘uvchi",
-    roleOPERATOR: "Operator",  },
+    roleOPERATOR: "Operator",
+    openTitle: "Kirish",
+    openSubtitle: "Rolni tanlang — parol kerak emas. Barcha ma’lumotlar shartli (demo).",
+    openError: "Kirib bo‘lmadi. Qayta urinib ko‘ring.",
+  },
 };
 
 export type Dict = typeof uz;
@@ -248,7 +252,11 @@ const ru: Dict = {
     picked: "Выбрано ✓",
     roleSHOP: "Сотрудник магазина",
     roleCOLLECTOR: "Сборщик",
-    roleOPERATOR: "Оператор",  },
+    roleOPERATOR: "Оператор",
+    openTitle: "Вход",
+    openSubtitle: "Выберите роль — пароль не нужен. Все данные условные (демо).",
+    openError: "Не удалось войти. Попробуйте ещё раз.",
+  },
 };
 
 const en: Dict = {
@@ -368,7 +376,11 @@ const en: Dict = {
     picked: "Chosen ✓",
     roleSHOP: "Shop staff",
     roleCOLLECTOR: "Collector",
-    roleOPERATOR: "Operator",  },
+    roleOPERATOR: "Operator",
+    openTitle: "Enter",
+    openSubtitle: "Choose a role — no password needed. All data is illustrative (demo).",
+    openError: "Couldn’t sign in. Please try again.",
+  },
 };
 
 export const DICTIONARIES: Record<Locale, Dict> = { uz, ru, en };

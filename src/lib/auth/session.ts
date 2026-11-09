@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 import type { SessionUser } from "@/server/contract";
 import { SESSION_COOKIE, SESSION_TTL_MS, newSessionToken, sessionIdFromToken } from "./tokens";
+import { demoAccountsAllowed } from "@/lib/open-access";
 
 const TOUCH_INTERVAL_MS = 60 * 60 * 1000;
 
@@ -57,7 +58,7 @@ export async function userForToken(token: string): Promise<SessionUser | null> {
   }
   const u = session.user;
   if (!u.isActive) return null;
-  if (u.isDemo && process.env.NODE_ENV === "production") return null;
+  if (u.isDemo && !demoAccountsAllowed()) return null;
   if (now - session.lastSeenAt.getTime() > TOUCH_INTERVAL_MS) {
     await prisma.session.updateMany({ where: { id }, data: { lastSeenAt: new Date(now) } });
   }

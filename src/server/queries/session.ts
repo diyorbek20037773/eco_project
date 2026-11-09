@@ -1,4 +1,5 @@
 // Sessiya so'rovlari (faqat server). "server-only" — Next.js ichki taqdim etadi (alohida paket shart emas).
+import { isOpenAccess } from "@/lib/open-access";
 import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
@@ -18,7 +19,8 @@ export async function requireUser(role?: Role): Promise<SessionUser> {
 
 export function getAppInfo(): AppInfo {
   return {
-    demoMode: process.env.DEMO_MODE === "true" && process.env.NODE_ENV !== "production",
+    // Demo belgisi: lokal demo rejimi yoki ochiq kirish (ma’lumotlar shartli).
+    demoMode: (process.env.DEMO_MODE === "true" && process.env.NODE_ENV !== "production") || isOpenAccess(),
     appUrl: (process.env.APP_URL ?? "http://localhost:3000").replace(/\/+$/, ""),
   };
 }

@@ -2,6 +2,7 @@
 import { prisma } from "@/lib/db";
 import { burnPasswordCheck, verifyPassword } from "@/lib/auth/password";
 import type { Role } from "@/server/contract";
+import { demoAccountsAllowed } from "@/lib/open-access";
 
 export const LOGIN_FAILED = "Login yoki parol noto‘g‘ri.";
 
@@ -18,7 +19,7 @@ export async function authenticate(loginRaw: string, password: string): Promise<
   const valid = await verifyPassword(password, user.passwordHash);
   if (!valid) return { ok: false, error: LOGIN_FAILED };
   if (!user.isActive) return { ok: false, error: "Akkaunt o‘chirilgan. Operatorga murojaat qiling." };
-  if (user.isDemo && process.env.NODE_ENV === "production") {
+  if (user.isDemo && !demoAccountsAllowed()) {
     return { ok: false, error: "Demo akkauntlar ishlab chiqarish rejimida ishlamaydi." };
   }
   return { ok: true, userId: user.id, role: user.role };

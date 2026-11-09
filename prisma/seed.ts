@@ -53,9 +53,9 @@ export interface SeedSummary {
   todayRequestIds: string[];
 }
 
-export async function runSeed(opts: { log?: (msg: string) => void; now?: Date } = {}): Promise<SeedSummary> {
+export async function runSeed(opts: { log?: (msg: string) => void; now?: Date; allowProduction?: boolean } = {}): Promise<SeedSummary> {
   const log = opts.log ?? (() => {});
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === "production" && !opts.allowProduction) {
     throw new Error("Demo seed production rejimida ishlamaydi. Haqiqiy foydalanuvchi uchun: npm run user:create -- --role OPERATOR --login ... --name ...");
   }
 

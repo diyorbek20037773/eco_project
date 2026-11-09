@@ -100,6 +100,11 @@ Uch rolni bir vaqtda sinash uchun uchta alohida brauzer profili yoki oddiy + ink
 
 Demo akkauntlar `isDemo` belgisi bilan yaratiladi va `NODE_ENV=production` da kira olmaydi.
 
+### Ochiq kirish (loginsiz demo)
+`OPEN_ACCESS=true` bo‘lsa, kirish sahifasida login/parol o‘rniga **rol kartalari** chiqadi: Do‘kon · Yig‘uvchi · Operator — bosilganda darhol kiriladi (production’da ham). Baza bo‘sh bo‘lsa, birinchi kirishda demo ma’lumotlar (do‘konlar, xaridor, tarif, namunaviy reys, bugungi buyurtmalar) avtomatik yaratiladi. Rollar va ruxsatlar ichkarida o‘z holicha ishlaydi.
+
+> Diqqat: bu rejimda havolani bilgan har kim istalgan rol bilan kira oladi va ma’lumotni o‘zgartira oladi — faqat shartli ma’lumotli demo/taqdimot uchun. Haqiqiy pilotda `OPEN_ACCESS` ni o‘chiring (`false`) va foydalanuvchilarni yarating.
+
 ## 6. Pilot foydalanuvchisini yaratish (haqiqiy, demo emas)
 ```powershell
 $env:NEW_USER_PASSWORD = "Kamida-10-belgili-parol"
