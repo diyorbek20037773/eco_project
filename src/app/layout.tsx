@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { FlashToast } from "@/components/ui/FlashToast";
 import { getLocale } from "@/i18n/server";
+import { LocaleProvider } from "@/i18n/LocaleProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,6 +20,8 @@ export const viewport: Viewport = {
   themeColor: "#176947",
 };
 
+const SKIP_LINK = { uz: "Asosiy qismga o‘tish", ru: "Перейти к содержимому", en: "Skip to content" } as const;
+
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const locale = await getLocale();
   return (
@@ -28,10 +31,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-4 focus:py-3 focus:font-semibold"
         >
-          Asosiy qismga o‘tish
+          {SKIP_LINK[locale]}
         </a>
-        {children}
-        <FlashToast />
+        <LocaleProvider locale={locale}>
+          {children}
+          <FlashToast />
+        </LocaleProvider>
       </body>
     </html>
   );
