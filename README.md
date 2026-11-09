@@ -45,14 +45,30 @@ npm run start                    # avval migratsiyalarni qo‘llaydi, so‘ng ht
 ```
 `npm run start` platforma bergan `PORT` o‘zgaruvchisini ishlatadi (berilmasa 3000).
 
-### Serverga / konteynerga joylash
-1. Muhit o‘zgaruvchilari: `DATABASE_URL`, `SESSION_SECRET` (≥ 32 tasodifiy belgi — standart qiymat bilan ilova ishlamaydi), `APP_URL` (tashqi manzil), `STORAGE_DIR` (doimiy diskdagi papka — aks holda qayta joylashda rasmlar yo‘qoladi), `NODE_ENV=production`.
-2. Build: `npm ci && npm run build`. Start: `npm run start` (migratsiyalar avtomatik qo‘llanadi).
-3. **Production’da demo akkauntlar ishlamaydi** (talab bo‘yicha). Birinchi operatorni server terminalida yarating:
+### Railway’ga joylash (kam resurs)
+Repoda `railway.json` bor — Railway uni o‘zi o‘qiydi: build `npm run build`, start esa migratsiyani qo‘llab, **yengil standalone serverni** ishga tushiradi (`node .next/standalone/server.js`, xotira chegarasi 256 MB, `npm` qobig‘isiz), health check — `/api/health`.
+
+1. Railway’da loyiha → **Deploy from GitHub repo** → shu repo. Yoniga **PostgreSQL** servisini qo‘shing.
+2. Ilova servisining **Variables** bo‘limi:
+   | O‘zgaruvchi | Qiymat |
+   |---|---|
+   | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` (Railway havolasi) |
+   | `SESSION_SECRET` | ≥ 32 tasodifiy belgi (standart qiymat bilan ilova ishlamaydi) |
+   | `APP_URL` | `https://<sizning-domeningiz>.up.railway.app` |
+   | `STORAGE_DIR` | `/data/uploads` (absolyut yo‘l, volume ichida) |
+   | `DEMO_MODE` | `false` |
+   | `NEXT_TELEMETRY_DISABLED` | `1` |
+   | `DATABASE_POOL_MAX` | `3` (ixtiyoriy; standart 5) |
+3. **Volume** qo‘shing va `/data` ga ulang — aks holda qayta joylashda yuklangan rasmlar o‘chadi.
+4. Resursni tejash: servis **Settings → Serverless (App Sleeping)** ni yoqing — so‘rov bo‘lmaganda ilova uxlaydi, birinchi so‘rovda bir necha soniyada uyg‘onadi. Replikalar soni 1.
+5. **Production’da demo akkauntlar ishlamaydi** (talab bo‘yicha). Birinchi operatorni Railway servis terminalida (yoki `railway run`) yarating:
    ```bash
-   NEW_USER_PASSWORD='kamida-10-belgili-parol' npm run user:create -- --role OPERATOR --login operator1 --name "Operator ismi"
+   NEW_USER_PASSWORD=kamida-10-belgili-parol npm run user:create -- --role OPERATOR --login operator1 --name "Operator ismi"
    ```
-   Do‘konlar, ularning xodimlari, yig‘uvchilar, xaridor va tarifni operator «Katalog» bo‘limida qo‘shadi.
+   Do‘konlar, xodimlar, yig‘uvchilar, xaridor va tarifni operator «Katalog» bo‘limida qo‘shadi.
+
+Boshqa server/konteynerda ham xuddi shunday: `npm ci && npm run build`, so‘ng `npm run start:standalone` (yoki `npm run start`).
+
 Yozuvlar PostgreSQL’da, rasmlar `STORAGE_DIR` (`./storage/uploads`) papkasida — ilova qayta ishga tushganda saqlanadi. Rasmlar ochiq papkada emas, faqat ruxsati bor foydalanuvchiga `/api/files/<id>` orqali beriladi.
 
 ## 4. `.env` kalitlari
@@ -64,6 +80,7 @@ Yozuvlar PostgreSQL’da, rasmlar `STORAGE_DIR` (`./storage/uploads`) papkasida 
 | `STORAGE_DIR` | Yuklangan rasmlar uchun yopiq papka |
 | `DEMO_MODE` | `true` — login sahifasida demo akkauntlar va «shartli ma’lumot» belgisi |
 | `APP_URL` | Telegram’da ulashiladigan havola uchun tashqi manzil |
+| `DATABASE_POOL_MAX`, `DATABASE_IDLE_TIMEOUT_MS` | DB ulanishlar hovuzi (standart 5 ta, bo‘sh ulanish 10 s da yopiladi) |
 
 ## 5. Demo kirish (faqat `DEMO_MODE=true` va production emas)
 Parol hammasida: `EcoDemo2026!`. Login sahifasida kartochkani bossangiz, maydonlar to‘ldiriladi.
@@ -129,3 +146,15 @@ docs/contract.md     umumiy kontrakt: holatlar, ruxsatlar, yo‘nalishlar, fayl 
 
 ## 11. Pilot chegarasi
 Bitta material (karton), bitta hudud (Qarshi), uchta rol. Kiosk, AI, marketplace, to‘lov protsessingi, bonus, GPS kuzatuv va marketing sahifasi keyingi bosqichda.
+
+## 12. Tillar
+Operator dashboardi (menyu, navbat, filtrlar, «Yangi reys» paneli, hisoblagichlar), login sahifasi va jamoa bo‘limi **o‘zbek / rus / ingliz** tillarida. Til yuqoridagi **UZ · RU · EN** tugmalari bilan almashtiriladi va brauzerda (`ep_lang` cookie) saqlanadi. Do‘kon va yig‘uvchi ekranlari hamda operatorning chuqur sahifalari (reys tafsiloti, katalog, audit) hozircha o‘zbekcha. Lug‘at: `src/i18n/dictionaries.ts`.
+
+## 13. Loyiha jamoasi
+Qarshi davlat universiteti talabalari:
+| Ism | Vazifa |
+|---|---|
+| Yulduz Qayumova | Jamoa rahbari (team lead) |
+| Dilnura Ramazonova | Soha mutaxassisi |
+| Marjon Jalilova | Bozor tahlilchisi (market analyst) |
+| Zarina Ismatullayeva | Full-stack dasturchi |

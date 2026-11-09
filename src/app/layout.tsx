@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { FlashToast } from "@/components/ui/FlashToast";
+import { getLocale } from "@/i18n/server";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,9 +19,10 @@ export const viewport: Viewport = {
   themeColor: "#176947",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const locale = await getLocale();
   return (
-    <html lang="uz">
+    <html lang={locale}>
       <body className="min-h-dvh bg-canvas text-ink antialiased">
         <a
           href="#main"

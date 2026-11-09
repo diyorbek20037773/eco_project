@@ -7,7 +7,18 @@ import { Logo } from "@/components/ui/Logo";
 import { IconLogout } from "@/components/ui/icons";
 import { cx } from "@/components/ui/cx";
 
-export function LogoutButton({ className, tone = "default" }: { className?: string; tone?: "default" | "mint" }) {
+export function LogoutButton({
+  className,
+  tone = "default",
+  label = "Chiqish",
+  iconOnlyOnMobile = false,
+}: {
+  className?: string;
+  tone?: "default" | "mint";
+  label?: string;
+  /** Tor ekranda faqat ikonka (yozuv ekran o‘quvchiga qoladi), ≥ sm — ikonka + yozuv. */
+  iconOnlyOnMobile?: boolean;
+}) {
   return (
     <form action={logoutAction}>
       <button
@@ -19,7 +30,7 @@ export function LogoutButton({ className, tone = "default" }: { className?: stri
         )}
       >
         <IconLogout size={18} />
-        <span>Chiqish</span>
+        <span className={iconOnlyOnMobile ? "sr-only sm:not-sr-only" : undefined}>{label}</span>
       </button>
     </form>
   );

@@ -240,7 +240,8 @@ export async function payUI(card: Locator, amount: string): Promise<void> {
   if (!(await box.getAttribute("open").then((v) => v !== null))) await box.locator("summary").click();
   await box.getByRole("textbox", { name: /^To‘langan summa/ }).fill(amount);
   await box.locator('button[type="submit"]').click();
-  await expect(box.getByText(/To‘lov qayd etildi\. Qoldiq:/)).toBeVisible();
+  // Qisman to‘lovda xabar forma ichida; to‘liq to‘langanda forma yo‘qoladi va xabar sahifa toast’iga o‘tadi.
+  await expect(card.page().getByText(/To‘lov qayd etildi\. Qoldiq:/).first()).toBeVisible();
 }
 
 export async function obligations(tripId: string): Promise<{ id: string; key: string; type: string; amount: number; paid: number }[]> {
