@@ -1,12 +1,20 @@
+"use client";
+
 import Link from "next/link";
 import type { ShopRequestSummary } from "@/server/contract";
-import { VOLUME_LABEL, uzText } from "@/domain/labels";
-import { formatKg, formatWindow } from "@/lib/format";
+import { uzText } from "@/domain/labels";
+import { formatKgL, formatWindowL } from "@/lib/format";
+import { fmt } from "@/i18n/config";
+import { labelsFor } from "@/i18n/labels";
+import { SHOP_DICT } from "@/i18n/shop";
+import { useDict, useLocale } from "@/i18n/LocaleProvider";
 import { routes } from "@/lib/routes";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { IconChevronRight } from "@/components/ui/icons";
 
 export function RequestCard({ r }: { r: ShopRequestSummary }) {
+  const locale = useLocale();
+  const t = useDict(SHOP_DICT);
   return (
     <Link
       href={routes.shop.request(r.id)}
@@ -14,23 +22,23 @@ export function RequestCard({ r }: { r: ShopRequestSummary }) {
     >
       <div className="min-w-0 flex-1 space-y-1">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-bold">Buyurtma №{r.number}</span>
+          <span className="font-bold">{fmt(t.c.orderNo, { n: r.number })}</span>
           <StatusBadge kind="request" value={r.status} />
         </div>
         <p className="text-sm text-muted">
-          {r.point.name} · {r.trip ? formatWindow(r.trip.windowStart, r.trip.windowEnd) : formatWindow(r.readyFrom, r.readyTo)}
+          {r.point.name} · {r.trip ? formatWindowL(r.trip.windowStart, r.trip.windowEnd, locale) : formatWindowL(r.readyFrom, r.readyTo, locale)}
         </p>
         <p className="text-sm tabular-nums">
           {r.netGrams !== null
-            ? `Sof vazn: ${formatKg(r.netGrams)}`
+            ? fmt(t.card.net, { kg: formatKgL(r.netGrams, locale) })
             : r.estimatedGrams !== null
-              ? `Taxminan ${formatKg(r.estimatedGrams)}`
+              ? fmt(t.c.approx, { kg: formatKgL(r.estimatedGrams, locale) })
               : r.volume
-                ? VOLUME_LABEL[r.volume]
-                : "Hajm ko‘rsatilmagan"}
+                ? labelsFor(locale).volume[r.volume]
+                : t.card.noVolume}
         </p>
         {r.stop?.status === "SKIPPED" && r.stop.skipReason ? (
-          <p className="text-sm font-semibold text-amber">Qoldirildi: {uzText(r.stop.skipReason)}</p>
+          <p className="text-sm font-semibold text-amber">{fmt(t.card.skipped, { reason: uzText(r.stop.skipReason) })}</p>
         ) : null}
       </div>
       <IconChevronRight className="shrink-0 text-muted" />

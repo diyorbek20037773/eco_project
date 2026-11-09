@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cx } from "./cx";
+import { UiText } from "./UiText";
 
 export function EmptyState({ title, children, action, icon }: { title: ReactNode; children?: ReactNode; action?: ReactNode; icon?: ReactNode }) {
   return (
@@ -61,10 +62,10 @@ export function Skeleton({ className }: { className?: string }) {
 }
 
 /** Sahifa yuklanish skeleti (loading.tsx). */
-export function PageSkeleton({ rows = 3, label = "Yuklanmoqda…" }: { rows?: number; label?: string }) {
+export function PageSkeleton({ rows = 3, label }: { rows?: number; label?: ReactNode }) {
   return (
     <div role="status" aria-live="polite" className="space-y-4">
-      <span className="sr-only">{label}</span>
+      <span className="sr-only">{label ?? <UiText k="loading" />}</span>
       <Skeleton className="h-8 w-2/3" />
       <Skeleton className="h-28 w-full" />
       {Array.from({ length: rows }, (_, i) => (

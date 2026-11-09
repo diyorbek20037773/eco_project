@@ -13,18 +13,6 @@ import { Card } from "@/components/ui/Card";
 const initialState: LoginState = {};
 type Tl = Dict["login"];
 
-/** Server xabarlari o‘zbekcha keladi — ma’lumlarini tanlangan tilga o‘giramiz. */
-function localizeError(error: string, t: Tl): string {
-  const map: Record<string, string> = {
-    "Login va parolni kiriting.": t.errMissing,
-    "Login yoki parol noto‘g‘ri.": t.errWrong,
-    "Akkaunt o‘chirilgan. Operatorga murojaat qiling.": t.errDisabled,
-    "Demo akkauntlar ishlab chiqarish rejimida ishlamaydi.": t.errDemoProd,
-    "Kutilmagan xato. Qayta urinib ko‘ring.": t.errUnexpected,
-  };
-  return map[error] ?? uzText(error);
-}
-
 /** "Do‘kon xodimi — Nur market" → nom qismi ("Nur market"); rol tarjimasi alohida. */
 function accountName(label: string): string {
   const parts = uzText(label).split(" — ");
@@ -71,7 +59,8 @@ export function LoginForm({ demoAccounts, t }: { demoAccounts: DemoAccount[]; t:
         <div aria-live="polite">
           {state.error ? (
             <Notice tone="danger" title={t.failed}>
-              {localizeError(state.error, t)}
+              {/* xabar server tomonda tanlangan tilga tarjima qilingan */}
+              {uzText(state.error)}
             </Notice>
           ) : null}
         </div>

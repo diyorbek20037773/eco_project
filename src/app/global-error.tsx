@@ -1,15 +1,27 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import { DEFAULT_LOCALE, LOCALE_COOKIE, isLocale, type Locale } from "@/i18n/config";
+import { COMMON_DICT } from "@/i18n/common";
+
+// Ildiz layout (va LocaleProvider) ishlamay qolganda tilni to‘g‘ridan-to‘g‘ri cookie’dan o‘qiymiz.
+function readCookieLocale(): Locale {
+  const m = document.cookie.match(new RegExp(`(?:^|;\s*)${LOCALE_COOKIE}=([^;]*)`));
+  const v = m?.[1] ? decodeURIComponent(m[1]) : undefined;
+  return isLocale(v) ? v : DEFAULT_LOCALE;
+}
+const noopSubscribe = () => () => {};
 
 // Ildiz layout ishlamay qolganda: o‘z <html>/<body> va inline uslublar bilan.
 export default function GlobalError({ error, retry }: { error: unknown; retry: () => void }) {
+  const locale = useSyncExternalStore(noopSubscribe, readCookieLocale, () => DEFAULT_LOCALE);
+  const t = COMMON_DICT[locale].globalError;
   useEffect(() => {
     console.error(error);
   }, [error]);
 
   return (
-    <html lang="uz">
+    <html lang={locale}>
       <body
         style={{
           margin: 0,
@@ -19,12 +31,10 @@ export default function GlobalError({ error, retry }: { error: unknown; retry: (
           fontFamily: 'Inter, "Segoe UI", Roboto, system-ui, sans-serif',
         }}
       >
-        <title>Xato · Eco Point</title>
+        <title>{t.docTitle}</title>
         <main style={{ maxWidth: 440, margin: "0 auto", padding: "48px 16px" }}>
-          <h1 style={{ fontSize: 24, margin: "0 0 8px" }}>Ilovani ochib bo‘lmadi</h1>
-          <p style={{ margin: "0 0 20px", lineHeight: 1.5 }}>
-            Kutilmagan xato yuz berdi. Internet aloqasini tekshiring va «Qayta urinish»ni bosing.
-          </p>
+          <h1 style={{ fontSize: 24, margin: "0 0 8px" }}>{t.title}</h1>
+          <p style={{ margin: "0 0 20px", lineHeight: 1.5 }}>{t.body}</p>
           <button
             type="button"
             onClick={() => retry()}
@@ -40,7 +50,7 @@ export default function GlobalError({ error, retry }: { error: unknown; retry: (
               cursor: "pointer",
             }}
           >
-            Qayta urinish
+            {t.retry}
           </button>
         </main>
       </body>

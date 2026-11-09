@@ -1,18 +1,21 @@
 import { LinkButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/States";
+import { getLocale } from "@/i18n/server";
+import { SHOP_DICT } from "@/i18n/shop";
 import { routes } from "@/lib/routes";
 
-export default function ShopNotFound() {
+export default async function ShopNotFound() {
+  const t = SHOP_DICT[await getLocale()];
   return (
     <EmptyState
-      title="Buyurtma topilmadi"
+      title={t.notFound.shopTitle}
       action={
         <LinkButton href={routes.shop.home} size="lg">
-          Bosh sahifaga
+          {t.c.toHome}
         </LinkButton>
       }
     >
-      Bu buyurtma yo‘q yoki boshqa do‘konga tegishli.
+      {t.notFound.shopBody}
     </EmptyState>
   );
 }

@@ -148,7 +148,9 @@ docs/contract.md     umumiy kontrakt: holatlar, ruxsatlar, yo‘nalishlar, fayl 
 Bitta material (karton), bitta hudud (Qarshi), uchta rol. Kiosk, AI, marketplace, to‘lov protsessingi, bonus, GPS kuzatuv va marketing sahifasi keyingi bosqichda.
 
 ## 12. Tillar
-Operator dashboardi (menyu, navbat, filtrlar, «Yangi reys» paneli, hisoblagichlar), login sahifasi va jamoa bo‘limi **o‘zbek / rus / ingliz** tillarida. Til yuqoridagi **UZ · RU · EN** tugmalari bilan almashtiriladi va brauzerda (`ep_lang` cookie) saqlanadi. Do‘kon va yig‘uvchi ekranlari hamda operatorning chuqur sahifalari (reys tafsiloti, katalog, audit) hozircha o‘zbekcha. Lug‘at: `src/i18n/dictionaries.ts`.
+Butun ilova **o‘zbek / rus / ingliz** tillarida: login, do‘kon, yig‘uvchi va operatorning barcha ekranlari, holat belgilari, sana/kg/so‘m formatlari hamda server xabarlari (xatolar va natijalar). Til **UZ · RU · EN** tugmalari bilan almashtiriladi va brauzerda (`ep_lang` cookie) saqlanadi; standart — o‘zbekcha. Foydalanuvchi kiritgan ma’lumot (izoh, manzil, sabab, nomlar) tarjima qilinmaydi.
+
+Lug‘atlar: `src/i18n/` (`dictionaries.ts` — dashboard va login, `shop.ts`, `operator.ts`, `common.ts`, `labels.ts` — holatlar, `messages.ts` — server xabarlari). Qoidalar: `docs/i18n.md`.
 
 ## 13. Loyiha jamoasi
 Qarshi davlat universiteti talabalari:

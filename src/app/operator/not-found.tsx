@@ -1,21 +1,24 @@
 import { LinkButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/States";
+import { getLocale } from "@/i18n/server";
+import { OPERATOR_DICT } from "@/i18n/operator";
 import { routes } from "@/lib/routes";
 
-export default function OperatorNotFound() {
+export default async function OperatorNotFound() {
+  const d = OPERATOR_DICT[await getLocale()];
   return (
     <EmptyState
-      title="Topilmadi"
+      title={d.notFound.title}
       action={
         <>
-          <LinkButton href={routes.operator.trips}>Reyslar</LinkButton>
+          <LinkButton href={routes.operator.trips}>{d.common.trips}</LinkButton>
           <LinkButton href={routes.operator.queue} variant="secondary">
-            Navbat
+            {d.common.queue}
           </LinkButton>
         </>
       }
     >
-      Bunday reys yoki yozuv yo‘q. Havolani tekshiring.
+      {d.notFound.text}
     </EmptyState>
   );
 }

@@ -1,18 +1,21 @@
 import { LinkButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/States";
+import { getLocale } from "@/i18n/server";
+import { SHOP_DICT } from "@/i18n/shop";
 import { routes } from "@/lib/routes";
 
-export default function CollectorNotFound() {
+export default async function CollectorNotFound() {
+  const t = SHOP_DICT[await getLocale()];
   return (
     <EmptyState
-      title="Topilmadi"
+      title={t.notFound.collectorTitle}
       action={
         <LinkButton href={routes.collector.today} size="lg">
-          Bugungi reys
+          {t.notFound.collectorHome}
         </LinkButton>
       }
     >
-      Bu reys yoki nuqta yo‘q yoki boshqa yig‘uvchiga biriktirilgan.
+      {t.notFound.collectorBody}
     </EmptyState>
   );
 }

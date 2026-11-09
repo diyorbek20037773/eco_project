@@ -1,9 +1,12 @@
 import Link from "next/link";
 import type { SessionUser } from "@/server/contract";
 import { logoutAction } from "@/server/actions/auth";
-import { ROLE_LABEL } from "@/domain/labels";
+import { getDict } from "@/i18n/server";
+import { COMMON_DICT } from "@/i18n/common";
+import { labelsFor } from "@/i18n/labels";
 import { homeFor } from "@/lib/routes";
-import { Logo } from "@/components/ui/Logo";
+import { Logo, LogoMark } from "@/components/ui/Logo";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { IconLogout } from "@/components/ui/icons";
 import { cx } from "@/components/ui/cx";
 
@@ -36,26 +39,35 @@ export function LogoutButton({
   );
 }
 
-/** Do‘kon va yig‘uvchi sarlavhasi: belgi, kim kirgan, «Chiqish». */
-export function AppHeader({ user, maxWidth = "max-w-xl" }: { user: SessionUser; maxWidth?: string }) {
-  const who = user.role === "SHOP" && user.shopName ? user.shopName : ROLE_LABEL[user.role];
+/**
+ * Do‘kon va yig‘uvchi sarlavhasi: belgi, til almashtirgich, «Chiqish», kim kirgan.
+ * Telefonda (< 640px) kim kirgani ikkinchi qatorga tushadi — 360 px’da ham hech narsa siqilmaydi.
+ */
+export async function AppHeader({ user, maxWidth = "max-w-xl" }: { user: SessionUser; maxWidth?: string }) {
+  const { locale, t } = await getDict();
+  const who = user.role === "SHOP" && user.shopName ? user.shopName : labelsFor(locale).role[user.role];
   return (
     <header className="border-b border-line bg-surface">
-      <div className={cx("mx-auto flex items-center justify-between gap-3 px-4 py-2", maxWidth)}>
-        <Link href={homeFor(user.role)} className="inline-flex min-h-11 items-center rounded-lg" aria-label="Eco Point — bosh sahifa">
-          <Logo size={30} />
+      <div className={cx("mx-auto flex flex-wrap items-center gap-x-2 gap-y-0.5 px-4 py-2", maxWidth)}>
+        <Link
+          href={homeFor(user.role)}
+          className="mr-auto inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg sm:justify-start"
+          aria-label={COMMON_DICT[locale].header.home}
+        >
+          <LogoMark size={30} className="sm:hidden" />
+          <span className="hidden sm:inline-flex">
+            <Logo size={30} />
+          </span>
         </Link>
-        <div className="flex min-w-0 items-center gap-2">
-          <div className="min-w-0 text-right leading-tight">
-            <div className="truncate text-sm font-semibold" title={user.name}>
-              {user.name}
-            </div>
-            <div className="truncate text-xs text-muted" title={who}>
-              {who}
-            </div>
+        <div className="order-last w-full min-w-0 pb-1 text-sm leading-tight sm:order-none sm:w-auto sm:flex-1 sm:pb-0 sm:text-right">
+          <div className="truncate" title={`${user.name} · ${who}`}>
+            <span className="font-semibold sm:block sm:truncate">{user.name}</span>
+            <span className="text-muted sm:hidden"> · </span>
+            <span className="text-muted sm:block sm:truncate sm:text-xs">{who}</span>
           </div>
-          <LogoutButton />
         </div>
+        <LanguageSwitcher locale={locale} label={t.common.language} />
+        <LogoutButton label={t.common.logout} iconOnlyOnMobile className="min-w-11 justify-center" />
       </div>
     </header>
   );

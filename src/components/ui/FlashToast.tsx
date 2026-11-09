@@ -3,12 +3,15 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { dismissFlash, readFlash, subscribeFlash } from "@/lib/client/flash";
 import { IconCheck, IconX } from "./icons";
+import { COMMON_DICT } from "@/i18n/common";
+import { useDict } from "@/i18n/LocaleProvider";
 
 const AUTO_HIDE_MS = 7000;
 
 /** Muvaffaqiyat xabari: forma ekrandan yo‘qolsa ham foydalanuvchi natijani ko‘radi. */
 export function FlashToast() {
   const msg = useSyncExternalStore(subscribeFlash, readFlash, () => null);
+  const t = useDict(COMMON_DICT).toast;
 
   useEffect(() => {
     if (!msg) return;
@@ -26,7 +29,7 @@ export function FlashToast() {
             type="button"
             onClick={() => dismissFlash(msg.id)}
             className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl hover:bg-surface"
-            aria-label="Xabarni yopish"
+            aria-label={t.close}
           >
             <IconX size={18} />
           </button>

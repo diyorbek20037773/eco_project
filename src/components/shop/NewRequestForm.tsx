@@ -4,7 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { PointDTO, VolumeSize } from "@/server/contract";
 import { createPickupRequest } from "@/server/actions/shop";
-import { VOLUME_LABEL, VOLUME_OPTIONS } from "@/domain/labels";
+import { VOLUME_OPTIONS } from "@/domain/labels";
+import { labelsFor } from "@/i18n/labels";
+import { SHOP_DICT } from "@/i18n/shop";
+import { useDict, useLocale } from "@/i18n/LocaleProvider";
 import { parseKgToGrams } from "@/domain/weight";
 import { routes } from "@/lib/routes";
 import { useActionForm } from "@/lib/client/use-action-form";
@@ -35,6 +38,8 @@ type Values = {
 
 export function NewRequestForm({ points, today, tomorrow }: { points: PointDTO[]; today: string; tomorrow: string }) {
   const router = useRouter();
+  const locale = useLocale();
+  const t = useDict(SHOP_DICT).form;
   const [uploading, setUploading] = useState(false);
   const form = useActionForm<Values, { requestId: string }>({
     draftKey: "shop-new-request",
@@ -51,7 +56,7 @@ export function NewRequestForm({ points, today, tomorrow }: { points: PointDTO[]
     },
     resetOnSuccess: false,
     flash: false,
-    successMessage: "Buyurtma yuborildi.",
+    successMessage: t.successMsg,
     onSuccess: (data) => router.push(`${routes.shop.request(data.requestId)}?created=1`),
   });
   const v = form.values;
@@ -59,16 +64,16 @@ export function NewRequestForm({ points, today, tomorrow }: { points: PointDTO[]
 
   function validate(): Record<string, string> {
     const errors: Record<string, string> = {};
-    if (!v.pointId) errors.pointId = "Qaysi nuqtadan olib ketishni tanlang.";
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(v.readyDate)) errors.readyDate = "Sanani tanlang.";
-    else if (v.readyDate < today) errors.readyDate = "O‘tgan sanani tanlab bo‘lmaydi.";
-    if (!v.fromTime || !v.toTime) errors.toTime = "Vaqt oralig‘ini kiriting.";
-    else if (v.toTime <= v.fromTime) errors.toTime = "Tugash vaqti boshlanishdan keyin bo‘lsin.";
+    if (!v.pointId) errors.pointId = t.errPoint;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v.readyDate)) errors.readyDate = t.errDate;
+    else if (v.readyDate < today) errors.readyDate = t.errPast;
+    if (!v.fromTime || !v.toTime) errors.toTime = t.errWindow;
+    else if (v.toTime <= v.fromTime) errors.toTime = t.errWindowOrder;
     if (v.scale === "yes") {
       const g = parseKgToGrams(v.estimatedKg);
-      if (g === null || g <= 0) errors.estimatedKg = "Taxminiy vaznni kg’da kiriting, masalan 45 yoki 45,5.";
+      if (g === null || g <= 0) errors.estimatedKg = t.errKg;
     } else if (!v.volume) {
-      errors.volume = "Taxminiy hajmni tanlang.";
+      errors.volume = t.errVolume;
     }
     return errors;
   }
@@ -81,7 +86,7 @@ export function NewRequestForm({ points, today, tomorrow }: { points: PointDTO[]
         e.preventDefault();
         const errors = validate();
         if (Object.keys(errors).length) {
-          form.fail("Formada xato bor — qizil belgilangan maydonlarni tuzating.", errors);
+          form.fail(t.errForm, errors);
           return;
         }
         void form.submit(({ clientKey, values }) =>
@@ -103,13 +108,13 @@ export function NewRequestForm({ points, today, tomorrow }: { points: PointDTO[]
 
       {points.length === 1 && points[0] ? (
         <Card className="space-y-0.5">
-          <p className="text-sm font-semibold text-muted">Olib ketish nuqtasi</p>
+          <p className="text-sm font-semibold text-muted">{t.point}</p>
           <p className="font-bold">{points[0].name}</p>
           <p className="text-sm text-muted">{points[0].address}</p>
         </Card>
       ) : (
         <ChoiceGroup
-          legend="Olib ketish nuqtasi"
+          legend={t.point}
           name="pointId"
           required
           value={v.pointId}
@@ -121,19 +126,19 @@ export function NewRequestForm({ points, today, tomorrow }: { points: PointDTO[]
 
       <div className="space-y-2">
         <p className="text-sm font-semibold">
-          Karton qachon tayyor bo‘ladi? <span className="text-danger">*</span>
+          {t.whenReady} <span className="text-danger">*</span>
         </p>
         <QuickChips
-          label="Sana"
+          label={t.date}
           options={[
-            { key: today, label: "Bugun" },
-            { key: tomorrow, label: "Ertaga" },
+            { key: today, label: t.today },
+            { key: tomorrow, label: t.tomorrow },
           ]}
           isActive={(k) => v.readyDate === k}
           onPick={(k) => form.setValue("readyDate", k)}
         />
         <TextInput
-          label="Sana"
+          label={t.date}
           type="date"
           min={today}
           value={v.readyDate}
@@ -144,10 +149,10 @@ export function NewRequestForm({ points, today, tomorrow }: { points: PointDTO[]
 
       <div className="space-y-2">
         <p className="text-sm font-semibold">
-          Vaqt oralig‘i <span className="text-danger">*</span>
+          {t.window} <span className="text-danger">*</span>
         </p>
         <QuickChips
-          label="Tezkor vaqt oralig‘i"
+          label={t.quickWindow}
           options={WINDOWS}
           isActive={(k) => `${v.fromTime}-${v.toTime}` === k}
           onPick={(k) => {
@@ -156,67 +161,67 @@ export function NewRequestForm({ points, today, tomorrow }: { points: PointDTO[]
           }}
         />
         <div className="grid grid-cols-2 gap-3">
-          <TextInput label="Boshlanishi" type="time" step={900} value={v.fromTime} onChange={(e) => form.setValue("fromTime", e.target.value)} error={fe.fromTime} />
-          <TextInput label="Tugashi" type="time" step={900} value={v.toTime} onChange={(e) => form.setValue("toTime", e.target.value)} error={fe.toTime} />
+          <TextInput label={t.from} type="time" step={900} value={v.fromTime} onChange={(e) => form.setValue("fromTime", e.target.value)} error={fe.fromTime} />
+          <TextInput label={t.to} type="time" step={900} value={v.toTime} onChange={(e) => form.setValue("toTime", e.target.value)} error={fe.toTime} />
         </div>
       </div>
 
       <ChoiceGroup
-        legend="Kartonni tortib ko‘rdingizmi?"
+        legend={t.scaleLegend}
         name="scale"
         columns={2}
         value={v.scale}
         onChange={(x) => form.setValue("scale", x)}
         options={[
-          { value: "yes", label: "Tarozim bor", description: "Taxminiy kg yozaman" },
-          { value: "no", label: "Tarozisiz", description: "Hajmini tanlayman" },
+          { value: "yes", label: t.scaleYes, description: t.scaleYesDesc },
+          { value: "no", label: t.scaleNo, description: t.scaleNoDesc },
         ]}
       />
 
       {v.scale === "yes" ? (
         <KgInput
-          label="Taxminiy vazn"
+          label={t.estKg}
           required
-          hint="Aniq vaznni yig‘uvchi o‘z tarozisida tortadi."
+          hint={t.estKgHint}
           value={v.estimatedKg}
           onValueChange={(x) => form.setValue("estimatedKg", x)}
           error={fe.estimatedKg}
         />
       ) : (
         <ChoiceGroup
-          legend="Taxminiy hajm"
+          legend={t.volume}
           name="volume"
           required
           value={v.volume}
           onChange={(x) => form.setValue("volume", x)}
           error={fe.volume}
-          options={VOLUME_OPTIONS.map((o) => ({ value: o, label: VOLUME_LABEL[o] }))}
+          options={VOLUME_OPTIONS.map((o) => ({ value: o, label: labelsFor(locale).volume[o] }))}
         />
       )}
 
       <PhotoInput
         kind="REQUEST_PHOTO"
-        label="Karton rasmi"
-        hint="Yig‘uvchi hajmni oldindan ko‘radi."
+        label={t.photo}
+        hint={t.photoHint}
         value={v.photoId || null}
         onChange={(id) => form.setValue("photoId", id ?? "")}
         onUploadingChange={setUploading}
       />
 
       <Textarea
-        label="Izoh"
+        label={t.note}
         optional
-        placeholder="Masalan: orqa eshikdan, qo‘riqchiga ayting"
+        placeholder={t.notePlaceholder}
         value={v.note}
         onChange={(e) => form.setValue("note", e.target.value)}
         error={fe.note}
       />
 
-      <FormStatus form={form} only="result" success="Buyurtma yuborildi. Tafsilotlar ochilmoqda…" />
+      <FormStatus form={form} only="result" success={t.success} />
 
       <StickyActionBar>
         <Button type="submit" size="lg" block loading={form.pending} disabled={uploading}>
-          {uploading ? "Rasm yuklanmoqda…" : "Yuborish"}
+          {uploading ? t.uploading : t.submit}
         </Button>
       </StickyActionBar>
     </form>

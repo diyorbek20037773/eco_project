@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import type { ShopHome } from "@/server/contract";
 import { getShopHome } from "@/server/queries/shop";
-import { VOLUME_LABEL } from "@/domain/labels";
-import { formatKg, formatSom, formatWindow, telHref } from "@/lib/format";
+import { fmt } from "@/i18n/config";
+import { getLocale } from "@/i18n/server";
+import { labelsFor } from "@/i18n/labels";
+import { SHOP_DICT } from "@/i18n/shop";
+import { formatKgL, formatSomL, formatWindowL, telHref } from "@/lib/format";
 import { routes } from "@/lib/routes";
 import { Card, Section, StatRow } from "@/components/ui/Card";
 import { LinkButton, TextLink } from "@/components/ui/Button";
@@ -14,7 +17,9 @@ import { DisputeAck } from "@/components/disputes/DisputeAck";
 import { ReceiptCard } from "@/components/shop/Receipt";
 import { RequestCard } from "@/components/shop/RequestCard";
 
-export const metadata: Metadata = { title: "Do‘kon" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: SHOP_DICT[await getLocale()].meta.shopHome };
+}
 
 /** Kechikish: vaqt oralig‘i o‘tib ketgan, lekin karton hali olinmagan. */
 function isLate(r: ShopHome["activeRequests"][number], now: Date): boolean {
@@ -25,7 +30,10 @@ function isLate(r: ShopHome["activeRequests"][number], now: Date): boolean {
 
 export default async function ShopHomePage() {
   const now = new Date();
-  const home: ShopHome = await getShopHome();
+  const [home, locale]: [ShopHome, Awaited<ReturnType<typeof getLocale>>] = await Promise.all([getShopHome(), getLocale()]);
+  const t = SHOP_DICT[locale];
+  const h = t.home;
+  const L = labelsFor(locale);
   const next = home.nextPickup;
   const others = home.activeRequests.filter((r) => r.id !== next?.id);
 
@@ -35,47 +43,47 @@ export default async function ShopHomePage() {
       <section aria-labelledby="next-title">
         <Card tone={next ? "primary" : "surface"} className="space-y-2">
           <h1 id="next-title" className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted">
-            <IconClock size={18} /> Keyingi olib ketish
+            <IconClock size={18} /> {h.nextTitle}
           </h1>
           {next ? (
             <>
               <p className="text-2xl font-bold leading-tight tabular-nums">
-                {next.trip ? formatWindow(next.trip.windowStart, next.trip.windowEnd) : formatWindow(next.readyFrom, next.readyTo)}
+                {next.trip ? formatWindowL(next.trip.windowStart, next.trip.windowEnd, locale) : formatWindowL(next.readyFrom, next.readyTo, locale)}
               </p>
               <div className="flex flex-wrap items-center gap-2">
                 <StatusBadge kind="request" value={next.status} />
                 {isLate(next, now) ? <LateBadge /> : null}
                 <span className="text-sm text-muted">
-                  Buyurtma №{next.number} · {next.point.name}
+                  {fmt(t.c.orderNo, { n: next.number })} · {next.point.name}
                 </span>
               </div>
               <p className="text-sm tabular-nums">
                 {next.estimatedGrams !== null
-                  ? `Taxminan ${formatKg(next.estimatedGrams)}`
+                  ? fmt(t.c.approx, { kg: formatKgL(next.estimatedGrams, locale) })
                   : next.volume
-                    ? VOLUME_LABEL[next.volume]
+                    ? L.volume[next.volume]
                     : null}
               </p>
               {next.trip ? (
                 <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
                   <p className="min-w-0 text-sm">
-                    Yig‘uvchi: <span className="font-semibold">{next.trip.collectorName}</span>
+                    {t.c.collector} <span className="font-semibold">{next.trip.collectorName}</span>
                   </p>
                   {next.trip.collectorPhone ? (
                     <LinkButton href={telHref(next.trip.collectorPhone)} variant="secondary" size="sm" icon={<IconPhone size={18} />}>
-                      Qo‘ng‘iroq qilish
+                      {t.c.call}
                     </LinkButton>
                   ) : null}
                 </div>
               ) : (
-                <p className="text-sm text-muted">Operator reysni rejalashtirgach, aniq vaqt shu yerda chiqadi.</p>
+                <p className="text-sm text-muted">{h.planNote}</p>
               )}
-              <TextLink href={routes.shop.request(next.id)}>Tafsilotlar</TextLink>
+              <TextLink href={routes.shop.request(next.id)}>{t.c.details}</TextLink>
             </>
           ) : (
             <>
-              <p className="text-xl font-bold">Rejalashtirilgan olib ketish yo‘q</p>
-              <p className="text-muted">Karton yig‘ilgan bo‘lsa, «Olib keting» tugmasini bosing — operator reysga qo‘shadi.</p>
+              <p className="text-xl font-bold">{h.noneTitle}</p>
+              <p className="text-muted">{h.noneBody}</p>
             </>
           )}
         </Card>
@@ -83,26 +91,26 @@ export default async function ShopHomePage() {
 
       {/* 2. Asosiy amal */}
       <LinkButton href={routes.shop.newRequest} size="xl" block icon={<IconPlus size={24} />}>
-        Olib keting
+        {h.cta}
       </LinkButton>
 
       {/* 3. Tasdiq kutayotgan tortishlar */}
       {home.pendingConfirmations.length > 0 ? (
-        <Section id="confirm" title="Vaznni tasdiqlang" description="Yig‘uvchi tortdi. Vazn to‘g‘ri bo‘lsa tasdiqlang, bo‘lmasa sabab bilan e’tiroz bildiring.">
+        <Section id="confirm" title={h.confirmTitle} description={h.confirmDesc}>
           <ul className="space-y-3">
             {home.pendingConfirmations.map((r) => (
               <li key={r.id}>
                 <Card tone="warning" className="space-y-3">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <p className="font-bold">
-                      Buyurtma №{r.number} · {r.point.name}
+                      {fmt(t.c.orderNo, { n: r.number })} · {r.point.name}
                     </p>
-                    <p className="text-2xl font-bold tabular-nums">{r.netGrams !== null ? formatKg(r.netGrams) : "—"}</p>
+                    <p className="text-2xl font-bold tabular-nums">{r.netGrams !== null ? formatKgL(r.netGrams, locale) : "—"}</p>
                   </div>
                   {r.stop ? (
                     <ConfirmWeighing stopId={r.stop.id} netGrams={r.netGrams} />
                   ) : (
-                    <TextLink href={routes.shop.request(r.id)}>Tafsilotlarni ochish</TextLink>
+                    <TextLink href={routes.shop.request(r.id)}>{h.openDetails}</TextLink>
                   )}
                 </Card>
               </li>
@@ -113,11 +121,11 @@ export default async function ShopHomePage() {
 
       {/* Bahs qarorlari */}
       {home.disputesAwaitingAck.length > 0 ? (
-        <Section id="disputes" title="Bahs qarorlari" description="Operator qaror chiqardi. Roziligingizni bildiring.">
+        <Section id="disputes" title={h.disputesTitle} description={h.disputesDesc}>
           <ul className="space-y-3">
             {home.disputesAwaitingAck.map((d) => (
               <li key={d.id}>
-                <DisputeAck dispute={d} context={`Buyurtma №${d.requestNumber} · ${d.pointName}`} />
+                <DisputeAck dispute={d} context={`${fmt(t.c.orderNo, { n: d.requestNumber })} · ${d.pointName}`} />
               </li>
             ))}
           </ul>
@@ -125,23 +133,23 @@ export default async function ShopHomePage() {
       ) : null}
 
       {/* 4. Oxirgi kvitansiya */}
-      <Section id="receipt" title="Oxirgi topshirish">
+      <Section id="receipt" title={h.receiptSection}>
         {home.lastReceipt ? (
-          <ReceiptCard receipt={home.lastReceipt} title="Kvitansiya" />
+          <ReceiptCard receipt={home.lastReceipt} title={h.receiptTitle} />
         ) : (
-          <EmptyState title="Hali topshirish yo‘q">Birinchi olib ketishdan keyin vazn, narx va summa shu yerda ko‘rinadi.</EmptyState>
+          <EmptyState title={h.noReceiptTitle}>{h.noReceiptBody}</EmptyState>
         )}
         <StatRow
           items={[
-            { label: "Jami hisoblangan", value: formatSom(home.totals.accrued) },
-            { label: "To‘langan", value: formatSom(home.totals.paid) },
-            { label: "Qoldiq", value: formatSom(home.totals.remaining) },
+            { label: h.totalAccrued, value: formatSomL(home.totals.accrued, locale) },
+            { label: h.totalPaid, value: formatSomL(home.totals.paid, locale) },
+            { label: h.totalRemaining, value: formatSomL(home.totals.remaining, locale) },
           ]}
         />
       </Section>
 
       {/* Faol buyurtmalar */}
-      <Section id="active" title="Faol buyurtmalar">
+      <Section id="active" title={h.activeTitle}>
         {others.length > 0 ? (
           <ul className="space-y-2">
             {others.map((r) => (
@@ -151,12 +159,12 @@ export default async function ShopHomePage() {
             ))}
           </ul>
         ) : (
-          <p className="text-muted">Boshqa faol buyurtma yo‘q.</p>
+          <p className="text-muted">{h.noOtherActive}</p>
         )}
       </Section>
 
       {home.points.length > 0 ? (
-        <Section id="points" title="Saqlangan nuqtalar">
+        <Section id="points" title={h.pointsTitle}>
           <ul className="space-y-2">
             {home.points.map((p) => (
               <li key={p.id}>
@@ -173,7 +181,7 @@ export default async function ShopHomePage() {
       ) : null}
 
       <LinkButton href={routes.shop.history} variant="secondary" block icon={<IconHistory />}>
-        Tarix va barcha kvitansiyalar
+        {h.historyLink}
       </LinkButton>
     </div>
   );

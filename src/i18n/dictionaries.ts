@@ -126,13 +126,7 @@ const uz = {
     picked: "Tanlandi ✓",
     roleSHOP: "Do‘kon xodimi",
     roleCOLLECTOR: "Yig‘uvchi",
-    roleOPERATOR: "Operator",
-    errMissing: "Login va parolni kiriting.",
-    errWrong: "Login yoki parol noto‘g‘ri.",
-    errDisabled: "Akkaunt o‘chirilgan. Operatorga murojaat qiling.",
-    errDemoProd: "Demo akkauntlar ishlab chiqarish rejimida ishlamaydi.",
-    errUnexpected: "Kutilmagan xato. Qayta urinib ko‘ring.",
-  },
+    roleOPERATOR: "Operator",  },
 };
 
 export type Dict = typeof uz;
@@ -254,13 +248,7 @@ const ru: Dict = {
     picked: "Выбрано ✓",
     roleSHOP: "Сотрудник магазина",
     roleCOLLECTOR: "Сборщик",
-    roleOPERATOR: "Оператор",
-    errMissing: "Введите логин и пароль.",
-    errWrong: "Неверный логин или пароль.",
-    errDisabled: "Аккаунт отключён. Обратитесь к оператору.",
-    errDemoProd: "Демо-аккаунты не работают в рабочем режиме.",
-    errUnexpected: "Непредвиденная ошибка. Попробуйте ещё раз.",
-  },
+    roleOPERATOR: "Оператор",  },
 };
 
 const en: Dict = {
@@ -380,13 +368,7 @@ const en: Dict = {
     picked: "Chosen ✓",
     roleSHOP: "Shop staff",
     roleCOLLECTOR: "Collector",
-    roleOPERATOR: "Operator",
-    errMissing: "Enter your login and password.",
-    errWrong: "Wrong login or password.",
-    errDisabled: "This account is disabled. Contact the operator.",
-    errDemoProd: "Demo accounts don’t work in production mode.",
-    errUnexpected: "Something went wrong. Please try again.",
-  },
+    roleOPERATOR: "Operator",  },
 };
 
 export const DICTIONARIES: Record<Locale, Dict> = { uz, ru, en };

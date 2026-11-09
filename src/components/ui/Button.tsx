@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { AnchorHTMLAttributes, ComponentPropsWithRef, ReactNode } from "react";
 import { cx } from "./cx";
+import { UiText } from "./UiText";
 
 export type ButtonVariant = "primary" | "secondary" | "danger" | "ghost" | "kraft" | "mint";
 export type ButtonSize = "sm" | "md" | "lg" | "xl";
@@ -46,7 +47,7 @@ export function Button({
   size = "md",
   block,
   loading,
-  loadingText = "Yuborilmoqda…",
+  loadingText,
   icon,
   className,
   children,
@@ -63,7 +64,7 @@ export function Button({
       {...rest}
     >
       {loading ? <Spinner /> : icon}
-      <span>{loading ? loadingText : children}</span>
+      <span>{loading ? (loadingText ?? <UiText k="sending" />) : children}</span>
     </button>
   );
 }

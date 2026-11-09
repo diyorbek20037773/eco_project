@@ -3,9 +3,13 @@
 import { useRouter } from "next/navigation";
 import type { TripBuilderOptions } from "@/server/contract";
 import { createTrip } from "@/server/actions/operator";
-import { VOLUME_LABEL, uzText, pointTitle } from "@/domain/labels";
+import { uzText, pointTitle } from "@/domain/labels";
 import { parseSom } from "@/domain/money";
-import { formatKg, formatSom, formatWindow } from "@/lib/format";
+import { fmt } from "@/i18n/config";
+import { labelsFor } from "@/i18n/labels";
+import { useLocale } from "@/i18n/LocaleProvider";
+import { OPERATOR_DICT } from "@/i18n/operator";
+import { formatKgL, formatSomL, formatWindowL } from "@/lib/format";
 import { routes } from "@/lib/routes";
 import { useActionForm } from "@/lib/client/use-action-form";
 import { FormStatus } from "@/lib/client/FormStatus";
@@ -38,6 +42,12 @@ export function TripBuilder({
   defaults: { date: string; fromTime: string; toTime: string; today: string };
 }) {
   const router = useRouter();
+  const locale = useLocale();
+  const d = OPERATOR_DICT[locale];
+  const t = d.builder;
+  const volumeLabel = labelsFor(locale).volume;
+  const formatKg = (g: number) => formatKgL(g, locale);
+  const formatSom = (n: number) => formatSomL(n, locale);
   const tariff = options.currentTariff;
   const initialOrder = options.selected.map((s) => s.id).join(",");
   const form = useActionForm<Values, { tripId: string }>({
@@ -57,7 +67,7 @@ export function TripBuilder({
     },
     resetOnSuccess: false,
     flash: false,
-    successMessage: "Reys tuzildi. Reys sahifasi ochilmoqda…",
+    successMessage: t.success,
     onSuccess: (data) => router.push(routes.operator.trip(data.tripId)),
   });
   const v = form.values;
@@ -86,15 +96,15 @@ export function TripBuilder({
 
   function validate() {
     const e: Record<string, string> = {};
-    if (order.length === 0) e.order = "Kamida bitta bekat qoldiring.";
-    if (!v.collectorId) e.collectorId = "Yig‘uvchini tanlang.";
-    if (!v.buyerId) e.buyerId = "Xaridorni tanlang.";
-    if (!v.date) e.date = "Sanani tanlang.";
-    if (!v.fromTime || !v.toTime) e.toTime = "Vaqt oralig‘ini kiriting.";
-    else if (v.toTime <= v.fromTime) e.toTime = "Tugash vaqti boshlanishdan keyin bo‘lsin.";
-    if (parseSom(v.shopPrice) === null) e.shopPricePerKg = "Do‘kon narxini butun so‘mda kiriting.";
-    if (parseSom(v.buyerPrice) === null) e.buyerPricePerKg = "Xaridor narxini butun so‘mda kiriting.";
-    if (parseSom(v.serviceFee) === null) e.serviceFee = "Xizmat haqini kiriting (0 bo‘lishi mumkin).";
+    if (order.length === 0) e.order = t.errOrder;
+    if (!v.collectorId) e.collectorId = t.errCollector;
+    if (!v.buyerId) e.buyerId = t.errBuyer;
+    if (!v.date) e.date = t.errDate;
+    if (!v.fromTime || !v.toTime) e.toTime = t.errTime;
+    else if (v.toTime <= v.fromTime) e.toTime = t.errTimeOrder;
+    if (parseSom(v.shopPrice) === null) e.shopPricePerKg = t.errShopPrice;
+    if (parseSom(v.buyerPrice) === null) e.buyerPricePerKg = t.errBuyerPrice;
+    if (parseSom(v.serviceFee) === null) e.serviceFee = t.errFee;
     return e;
   }
 
@@ -106,7 +116,7 @@ export function TripBuilder({
         ev.preventDefault();
         const e = validate();
         if (Object.keys(e).length) {
-          form.fail("Formada xato bor — belgilangan maydonlarni tuzating.", e);
+          form.fail(t.formError, e);
           return;
         }
         void form.submit(({ clientKey, values }) =>
@@ -130,7 +140,7 @@ export function TripBuilder({
       <FormStatus form={form} only="draft" />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <Section id="stops" title={`Bekatlar tartibi (${stops.length})`} description="Yig‘uvchi shu tartibda yuradi.">
+        <Section id="stops" title={fmt(t.stopsTitle, { n: stops.length })} description={t.stopsDesc}>
           {fe.order || fe.requestIds ? <Notice tone="danger">{fe.order ?? fe.requestIds}</Notice> : null}
           <ol className="space-y-2">
             {stops.map((s, i) => (
@@ -145,27 +155,27 @@ export function TripBuilder({
                       {s.point.address} · {s.point.district}
                     </p>
                     <p className="tabular-nums">
-                      {formatWindow(s.readyFrom, s.readyTo)} ·{" "}
-                      {s.estimatedGrams !== null ? formatKg(s.estimatedGrams) : s.volume ? VOLUME_LABEL[s.volume] : "hajm yo‘q"}
+                      {formatWindowL(s.readyFrom, s.readyTo, locale)} ·{" "}
+                      {s.estimatedGrams !== null ? formatKg(s.estimatedGrams) : s.volume ? volumeLabel[s.volume] : t.noVolume}
                     </p>
                     <div className="flex flex-wrap gap-1">
                       {s.status === "SKIPPED" ? (
                         <Badge tone="warning" icon="↺">
-                          Qoldirilgan{s.lastSkipReason ? `: ${uzText(s.lastSkipReason)}` : ""}
+                          {t.skipped}{s.lastSkipReason ? `: ${uzText(s.lastSkipReason)}` : ""}
                         </Badge>
                       ) : null}
                       {s.isLate ? <LateBadge /> : null}
                     </div>
                   </div>
                   <div className="flex shrink-0 flex-col sm:flex-row">
-                    <Button size="sm" variant="ghost" className="px-2" aria-label={`№${s.number}ni yuqoriga`} disabled={i === 0} onClick={() => move(i, -1)}>
+                    <Button size="sm" variant="ghost" className="px-2" aria-label={fmt(d.common.moveUp, { n: s.number })} disabled={i === 0} onClick={() => move(i, -1)}>
                       <IconArrowUp size={18} />
                     </Button>
                     <Button
                       size="sm"
                       variant="ghost"
                       className="px-2"
-                      aria-label={`№${s.number}ni pastga`}
+                      aria-label={fmt(d.common.moveDown, { n: s.number })}
                       disabled={i === stops.length - 1}
                       onClick={() => move(i, 1)}
                     >
@@ -175,7 +185,7 @@ export function TripBuilder({
                       size="sm"
                       variant="ghost"
                       className="px-2 text-danger"
-                      aria-label={`№${s.number}ni reysdan olib tashlash`}
+                      aria-label={fmt(d.common.removeFromTrip, { n: s.number })}
                       disabled={stops.length === 1}
                       onClick={() => setOrder(order.filter((id) => id !== s.id))}
                     >
@@ -187,23 +197,23 @@ export function TripBuilder({
             ))}
           </ol>
           <p className="text-sm tabular-nums">
-            Taxminiy jami: <span className="font-bold">{formatKg(knownGrams)}</span>
-            {unknown > 0 ? <span className="text-muted"> + {unknown} ta buyurtma hajm bo‘yicha (kg noma’lum)</span> : null}
+            {t.estTotal} <span className="font-bold">{formatKg(knownGrams)}</span>
+            {unknown > 0 ? <span className="text-muted">{fmt(t.unknown, { n: unknown })}</span> : null}
           </p>
           <LinkButton href={routes.operator.queue} variant="ghost">
-            Navbatga qaytib, tanlovni o‘zgartirish
+            {t.backToQueue}
           </LinkButton>
         </Section>
 
         <div className="space-y-6">
-          <Section id="people" title="Yig‘uvchi va xaridor">
+          <Section id="people" title={t.peopleTitle}>
             {options.collectors.length === 0 ? (
-              <Notice tone="warning" actions={<LinkButton href={routes.operator.directory} size="sm">Katalogga o‘tish</LinkButton>}>
-                Faol yig‘uvchi yo‘q. Avval katalogda yig‘uvchi qo‘shing.
+              <Notice tone="warning" actions={<LinkButton href={routes.operator.directory} size="sm">{t.toCatalog}</LinkButton>}>
+                {t.noCollectors}
               </Notice>
             ) : null}
-            <Select label="Yig‘uvchi" required value={v.collectorId} onChange={(e) => form.setValue("collectorId", e.target.value)} error={fe.collectorId}>
-              <option value="">— tanlang —</option>
+            <Select label={t.collector} required value={v.collectorId} onChange={(e) => form.setValue("collectorId", e.target.value)} error={fe.collectorId}>
+              <option value="">{t.choose}</option>
               {options.collectors.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -212,12 +222,12 @@ export function TripBuilder({
               ))}
             </Select>
             {options.buyers.length === 0 ? (
-              <Notice tone="warning" actions={<LinkButton href={routes.operator.directory} size="sm">Katalogga o‘tish</LinkButton>}>
-                Faol xaridor yo‘q. Avval katalogda xaridor qo‘shing.
+              <Notice tone="warning" actions={<LinkButton href={routes.operator.directory} size="sm">{t.toCatalog}</LinkButton>}>
+                {t.noBuyers}
               </Notice>
             ) : null}
-            <Select label="Xaridor" required value={v.buyerId} onChange={(e) => form.setValue("buyerId", e.target.value)} error={fe.buyerId}>
-              <option value="">— tanlang —</option>
+            <Select label={t.buyer} required value={v.buyerId} onChange={(e) => form.setValue("buyerId", e.target.value)} error={fe.buyerId}>
+              <option value="">{t.choose}</option>
               {options.buyers.map((b) => (
                 <option key={b.id} value={b.id}>
                   {b.name}
@@ -227,53 +237,53 @@ export function TripBuilder({
             {buyer ? (
               <Card tone="kraft" className="space-y-1 text-sm">
                 <p>
-                  <span className="font-semibold">Sifat sharti:</span> {uzText(buyer.qualityTerms)}
+                  <span className="font-semibold">{t.qualityTerms}</span> {uzText(buyer.qualityTerms)}
                 </p>
                 <p className="tabular-nums">
-                  <span className="font-semibold">Minimal partiya:</span> {formatKg(buyer.minBatchGrams)}
+                  <span className="font-semibold">{t.minBatch}</span> {formatKg(buyer.minBatchGrams)}
                 </p>
                 {buyer.contactName || buyer.phone ? (
                   <p>
-                    <span className="font-semibold">Kontakt:</span> {[buyer.contactName, buyer.phone].filter(Boolean).join(" · ")}
+                    <span className="font-semibold">{t.contact}</span> {[buyer.contactName, buyer.phone].filter(Boolean).join(" · ")}
                   </p>
                 ) : null}
               </Card>
             ) : null}
             {belowMin && buyer ? (
-              <Notice tone="warning" title="Minimal partiyadan kam">
-                Taxminiy jami {formatKg(knownGrams)} — xaridorning minimal partiyasi {formatKg(buyer.minBatchGrams)}. Yana bekat qo‘shing yoki xaridor bilan kelishing.
+              <Notice tone="warning" title={t.belowMinTitle}>
+                {fmt(t.belowMin, { kg: formatKg(knownGrams), min: formatKg(buyer.minBatchGrams) })}
               </Notice>
             ) : null}
           </Section>
 
-          <Section id="time" title="Vaqt">
-            <TextInput label="Sana" type="date" required min={defaults.today} value={v.date} onChange={(e) => form.setValue("date", e.target.value)} error={fe.date} />
+          <Section id="time" title={t.timeTitle}>
+            <TextInput label={t.date} type="date" required min={defaults.today} value={v.date} onChange={(e) => form.setValue("date", e.target.value)} error={fe.date} />
             <div className="grid grid-cols-2 gap-3">
-              <TextInput label="Boshlanishi" type="time" required value={v.fromTime} onChange={(e) => form.setValue("fromTime", e.target.value)} error={fe.fromTime} />
-              <TextInput label="Tugashi" type="time" required value={v.toTime} onChange={(e) => form.setValue("toTime", e.target.value)} error={fe.toTime} />
+              <TextInput label={t.from} type="time" required value={v.fromTime} onChange={(e) => form.setValue("fromTime", e.target.value)} error={fe.fromTime} />
+              <TextInput label={t.to} type="time" required value={v.toTime} onChange={(e) => form.setValue("toTime", e.target.value)} error={fe.toTime} />
             </div>
           </Section>
 
           <Section
             id="prices"
-            title="Kelishilgan narxlar"
-            description={tariff ? "Joriy tarifdan to‘ldirildi. Reysda nusxa saqlanadi — keyingi tarif bu reysni o‘zgartirmaydi." : "Joriy tarif yo‘q — narxlarni qo‘lda kiriting."}
+            title={t.pricesTitle}
+            description={tariff ? t.pricesFromTariff : t.pricesNoTariff}
           >
             <div className="grid gap-3 sm:grid-cols-3">
-              <SomInput label="Do‘konga, 1 kg" required value={v.shopPrice} onValueChange={(x) => form.setValue("shopPrice", x)} error={fe.shopPricePerKg} />
-              <SomInput label="Xaridor, 1 kg" required value={v.buyerPrice} onValueChange={(x) => form.setValue("buyerPrice", x)} error={fe.buyerPricePerKg} />
-              <SomInput label="Eco Point xizmat haqi" required hint="Reys uchun" value={v.serviceFee} onValueChange={(x) => form.setValue("serviceFee", x)} error={fe.serviceFee} />
+              <SomInput label={t.shopPrice} required value={v.shopPrice} onValueChange={(x) => form.setValue("shopPrice", x)} error={fe.shopPricePerKg} />
+              <SomInput label={t.buyerPrice} required value={v.buyerPrice} onValueChange={(x) => form.setValue("buyerPrice", x)} error={fe.buyerPricePerKg} />
+              <SomInput label={t.fee} required hint={t.feeHint} value={v.serviceFee} onValueChange={(x) => form.setValue("serviceFee", x)} error={fe.serviceFee} />
             </div>
             {tariff ? (
               <p className="text-sm text-muted tabular-nums">
-                Tarif: {formatSom(tariff.shopPricePerKg)}/kg · {formatSom(tariff.buyerPricePerKg)}/kg · xizmat {formatSom(tariff.serviceFee)}
+                {fmt(t.tariffLine, { shop: formatSom(tariff.shopPricePerKg), buyer: formatSom(tariff.buyerPricePerKg), fee: formatSom(tariff.serviceFee) })}
               </p>
             ) : null}
           </Section>
 
-          <Section id="extra" title="Qo‘shimcha">
-            <TextInput label="Transport" optional placeholder="Masalan: Damas 01 A 123 BC" value={v.vehicle} onChange={(e) => form.setValue("vehicle", e.target.value)} error={fe.vehicle} />
-            <Textarea label="Izoh" optional value={v.note} onChange={(e) => form.setValue("note", e.target.value)} error={fe.note} />
+          <Section id="extra" title={t.extraTitle}>
+            <TextInput label={t.vehicle} optional placeholder={t.vehiclePh} value={v.vehicle} onChange={(e) => form.setValue("vehicle", e.target.value)} error={fe.vehicle} />
+            <Textarea label={t.note} optional value={v.note} onChange={(e) => form.setValue("note", e.target.value)} error={fe.note} />
           </Section>
         </div>
       </div>
@@ -281,7 +291,7 @@ export function TripBuilder({
       <FormStatus form={form} only="result" />
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
         <Button type="submit" size="lg" loading={form.pending} icon={<IconTruck />} disabled={stops.length === 0}>
-          Reysni saqlash ({stops.length} bekat)
+          {fmt(t.submit, { n: stops.length })}
         </Button>
       </div>
     </form>

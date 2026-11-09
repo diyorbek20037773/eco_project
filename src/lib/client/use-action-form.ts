@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } fro
 import { useRouter } from "next/navigation";
 import type { ActionResult } from "@/server/contract";
 import { uzText } from "@/domain/labels";
+import { COMMON_DICT } from "@/i18n/common";
+import { useDict } from "@/i18n/LocaleProvider";
 import { newClientKey } from "./client-key";
 import { flash } from "./flash";
 import { clearDraft, parseDraft, readDraftRaw, subscribeDrafts, type Draft } from "./draft";
@@ -11,9 +13,9 @@ import { clearDraft, parseDraft, readDraftRaw, subscribeDrafts, type Draft } fro
 export type FormValues = Record<string, string>;
 export type FormPhase = "idle" | "pending" | "success" | "error" | "network";
 
-export const NETWORK_ERROR_TEXT = "Internet aloqasi yo‘q. Ma’lumotlar saqlandi — «Qayta yuborish»ni bosing.";
-export const SERVER_UNREACHABLE_TEXT =
-  "Server javob bermadi. Ma’lumotlar saqlandi — biroz kutib «Qayta yuborish»ni bosing.";
+/** O‘zbekcha asl matnlar; forma joriy tildagi variantni `COMMON_DICT[locale].form` dan oladi. */
+export const NETWORK_ERROR_TEXT = COMMON_DICT.uz.form.networkError;
+export const SERVER_UNREACHABLE_TEXT = COMMON_DICT.uz.form.serverUnreachable;
 
 export interface UseActionFormOptions<V extends FormValues, T> {
   initialValues: V;
@@ -58,6 +60,7 @@ function isOffline(err: unknown): boolean {
  */
 export function useActionForm<V extends FormValues, T = undefined>(opts: UseActionFormOptions<V, T>) {
   const router = useRouter();
+  const tf = useDict(COMMON_DICT).form;
   const { draftKey } = opts;
   // null = joriy opts.initialValues (refresh'dan keyingi yangi boshlang‘ich qiymatlar ham shu orqali tushadi)
   const [stored, setValuesState] = useState<V | null>(null);
@@ -129,7 +132,7 @@ export function useActionForm<V extends FormValues, T = undefined>(opts: UseActi
     } catch (err) {
       inFlight.current = false;
       setPhase("network");
-      setError(isOffline(err) ? NETWORK_ERROR_TEXT : SERVER_UNREACHABLE_TEXT);
+      setError(isOffline(err) ? tf.networkError : tf.serverUnreachable);
       return null;
     }
     inFlight.current = false;
@@ -148,7 +151,7 @@ export function useActionForm<V extends FormValues, T = undefined>(opts: UseActi
     setPhase("success");
     setData(result.data);
     setFieldErrors({});
-    setMessage(uzText(custom ?? result.message ?? "Saqlandi."));
+    setMessage(uzText(custom ?? result.message ?? tf.saved));
     if (draftKey) clearDraft(draftKey);
     setClientKey(newClientKey());
     if (opts.resetOnSuccess !== false) {

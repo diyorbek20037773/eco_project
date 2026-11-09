@@ -4,7 +4,9 @@ import type { ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { IconRefresh } from "@/components/ui/icons";
 import { Notice } from "@/components/ui/States";
-import { formatDateTime } from "@/lib/format";
+import { fmt } from "@/i18n/config";
+import { COMMON_DICT, formatDateTimeL } from "@/i18n/common";
+import { useDict, useLocale } from "@/i18n/LocaleProvider";
 import type { FormPhase } from "./use-action-form";
 
 interface FormStatusApi {
@@ -32,6 +34,8 @@ export function FormStatus({
   /** "draft" — faqat qoralama taklifi (forma tepasida), "result" — faqat natija (tugma yonida) */
   only?: "draft" | "result";
 }) {
+  const locale = useLocale();
+  const t = useDict(COMMON_DICT).form;
   const showDraft = only !== "result";
   const showResult = only !== "draft";
   return (
@@ -39,29 +43,29 @@ export function FormStatus({
       {showDraft && form.draft ? (
         <Notice
           tone="info"
-          title="Oldin kiritilgan ma’lumotlar saqlangan"
+          title={t.draftTitle}
           actions={
             <>
               <Button size="sm" onClick={form.draft.restore}>
-                Tiklash
+                {t.draftRestore}
               </Button>
               <Button size="sm" variant="ghost" onClick={form.draft.discard}>
-                O‘chirish
+                {t.draftDiscard}
               </Button>
             </>
           }
         >
-          Saqlangan vaqti: {formatDateTime(new Date(form.draft.savedAt))}
+          {fmt(t.draftSavedAt, { time: formatDateTimeL(new Date(form.draft.savedAt), locale) })}
         </Notice>
       ) : null}
 
       {showResult && form.phase === "network" && form.error ? (
         <Notice
           tone="danger"
-          title="Yuborilmadi"
+          title={t.notSent}
           actions={
             <Button size="sm" onClick={form.retry} loading={form.pending} icon={<IconRefresh size={16} />}>
-              Qayta yuborish
+              {t.resend}
             </Button>
           }
         >
@@ -70,13 +74,13 @@ export function FormStatus({
       ) : null}
 
       {showResult && form.phase === "error" && form.error ? (
-        <Notice tone="danger" title="Saqlanmadi">
+        <Notice tone="danger" title={t.notSaved}>
           {form.error}
         </Notice>
       ) : null}
 
       {showResult && form.phase === "success" && !hideSuccess ? (
-        <Notice tone="success" title={success ?? form.message ?? "Saqlandi."} />
+        <Notice tone="success" title={success ?? form.message ?? t.saved} />
       ) : null}
     </div>
   );

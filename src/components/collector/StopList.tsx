@@ -1,7 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import type { StopDTO } from "@/server/contract";
 import { uzText, pointTitle } from "@/domain/labels";
-import { formatKg, formatTime } from "@/lib/format";
+import { formatKgL, formatTime } from "@/lib/format";
+import { fmt } from "@/i18n/config";
+import { SHOP_DICT } from "@/i18n/shop";
+import { useDict, useLocale } from "@/i18n/LocaleProvider";
 import { routes } from "@/lib/routes";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { IconChevronRight } from "@/components/ui/icons";
@@ -9,6 +14,8 @@ import { cx } from "@/components/ui/cx";
 
 /** Reys bekatlari tartibli ro‘yxati (yig‘uvchi). */
 export function StopList({ stops, currentId }: { stops: StopDTO[]; currentId?: string | null }) {
+  const locale = useLocale();
+  const t = useDict(SHOP_DICT).stopList;
   const visible = [...stops].filter((s) => s.status !== "REMOVED").sort((a, b) => a.sequence - b.sequence);
   return (
     <ol className="space-y-2">
@@ -33,13 +40,13 @@ export function StopList({ stops, currentId }: { stops: StopDTO[]; currentId?: s
             </span>
             <span className="min-w-0 flex-1">
               <span className="block font-semibold">
-                <span className="sr-only">{s.sequence}-nuqta: </span>
+                <span className="sr-only">{fmt(t.srStop, { n: s.sequence })}</span>
                 {pointTitle(s.point)}
               </span>
               <span className="block text-sm text-muted">{s.point.address}</span>
               <span className="mt-0.5 flex flex-wrap items-center gap-2 text-sm">
                 <StatusBadge kind="stop" value={s.status} />
-                {s.weighing ? <span className="font-semibold tabular-nums">{formatKg(s.weighing.netGrams)}</span> : null}
+                {s.weighing ? <span className="font-semibold tabular-nums">{formatKgL(s.weighing.netGrams, locale)}</span> : null}
                 {s.status === "PENDING" ? (
                   <span className="tabular-nums text-muted">
                     {formatTime(s.request.readyFrom)}–{formatTime(s.request.readyTo)}

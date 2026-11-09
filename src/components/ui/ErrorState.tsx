@@ -3,12 +3,15 @@
 import { useEffect } from "react";
 import { Button, LinkButton } from "./Button";
 import { IconRefresh } from "./icons";
+import { fmt } from "@/i18n/config";
+import { COMMON_DICT } from "@/i18n/common";
+import { useDict } from "@/i18n/LocaleProvider";
 
 /** error.tsx uchun umumiy ko‘rinish: nima bo‘ldi + nima qilish kerak + «Qayta urinish». */
 export function ErrorState({
   error,
   retry,
-  title = "Sahifani ochib bo‘lmadi",
+  title,
   homeHref,
 }: {
   error: unknown;
@@ -16,6 +19,7 @@ export function ErrorState({
   title?: string;
   homeHref?: string;
 }) {
+  const t = useDict(COMMON_DICT).error;
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -27,21 +31,19 @@ export function ErrorState({
     <div role="alert" className="rounded-card border border-danger/50 bg-danger-soft px-4 py-6">
       <p className="flex items-center gap-2 text-lg font-bold text-danger">
         <span aria-hidden="true">⚠</span>
-        {title}
+        {title ?? t.title}
       </p>
       <p className="mt-1 text-ink">
-        {offline
-          ? "Internet aloqasi yo‘q. Aloqa tiklangach «Qayta urinish»ni bosing."
-          : "Server bilan bog‘lanishda xato yuz berdi. Kiritilgan ma’lumotlar yo‘qolmaydi — «Qayta urinish»ni bosing."}
+        {offline ? t.offline : t.server}
       </p>
-      {digest ? <p className="mt-1 text-sm text-muted">Xato kodi: {digest}</p> : null}
+      {digest ? <p className="mt-1 text-sm text-muted">{fmt(t.code, { code: digest })}</p> : null}
       <div className="mt-4 flex flex-wrap gap-2">
         <Button onClick={() => retry()} icon={<IconRefresh />}>
-          Qayta urinish
+          {t.retry}
         </Button>
         {homeHref ? (
           <LinkButton href={homeHref} variant="secondary">
-            Bosh sahifaga
+            {t.home}
           </LinkButton>
         ) : null}
       </div>

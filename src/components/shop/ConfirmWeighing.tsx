@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { confirmStopWeight, disputeStopWeight } from "@/server/actions/shop";
 import { parseKgToGrams } from "@/domain/weight";
-import { formatKg } from "@/lib/format";
+import { formatKgL } from "@/lib/format";
+import { fmt } from "@/i18n/config";
+import { SHOP_DICT } from "@/i18n/shop";
+import { useDict, useLocale } from "@/i18n/LocaleProvider";
 import { useActionForm } from "@/lib/client/use-action-form";
 import { FormStatus } from "@/lib/client/FormStatus";
 import { Button } from "@/components/ui/Button";
@@ -13,42 +16,42 @@ import { IconAlert, IconCheck } from "@/components/ui/icons";
 
 /** Do‘kon o‘z vaznini tasdiqlaydi yoki sabab bilan e’tiroz bildiradi. */
 export function ConfirmWeighing({ stopId, netGrams }: { stopId: string; netGrams: number | null }) {
+  const locale = useLocale();
+  const t = useDict(SHOP_DICT).confirm;
   const [mode, setMode] = useState<"choose" | "dispute">("choose");
   const [done, setDone] = useState<null | "confirmed" | "disputed">(null);
 
   const confirm = useActionForm<Record<string, never>>({
     initialValues: {},
-    successMessage: "Vazn tasdiqlandi. Rahmat!",
+    successMessage: t.confirmedMsg,
     onSuccess: () => setDone("confirmed"),
   });
 
   const dispute = useActionForm<{ reason: string; claimedKg: string }, { disputeId: string }>({
     initialValues: { reason: "", claimedKg: "" },
     draftKey: `dispute:${stopId}`,
-    successMessage: "E’tiroz yuborildi. Operator ko‘rib chiqib qaror chiqaradi.",
+    successMessage: t.disputedMsg,
     onSuccess: () => setDone("disputed"),
   });
 
   if (done) {
     return (
-      <Notice tone={done === "confirmed" ? "success" : "warning"} live="polite" title={done === "confirmed" ? "Vazn tasdiqlandi" : "E’tiroz yuborildi"}>
-        {done === "confirmed"
-          ? "Summa xaridor qabulidan keyin kvitansiyada ko‘rinadi."
-          : "Operator qarorini shu sahifada ko‘rasiz va unga rozilik bildirasiz."}
+      <Notice tone={done === "confirmed" ? "success" : "warning"} live="polite" title={done === "confirmed" ? t.confirmedTitle : t.disputedTitle}>
+        {done === "confirmed" ? t.confirmedBody : t.disputedBody}
       </Notice>
     );
   }
 
   if (mode === "dispute") {
     const claimed = dispute.values.claimedKg.trim();
-    const claimedError = claimed && parseKgToGrams(claimed) === null ? "Vaznni raqamda kiriting, masalan 175,5." : null;
+    const claimedError = claimed && parseKgToGrams(claimed) === null ? t.errKg : null;
     return (
       <form noValidate className="space-y-3"
         onSubmit={(e) => {
           e.preventDefault();
           const reason = dispute.values.reason.trim();
           if (reason.length < 3) {
-            dispute.fail("E’tiroz sababini yozing.", { reason: "Sababni yozing: masalan, «biz 190 kg tortgan edik»." });
+            dispute.fail(t.errReason, { reason: t.errReasonField });
             return;
           }
           if (claimedError) {
@@ -59,17 +62,17 @@ export function ConfirmWeighing({ stopId, netGrams }: { stopId: string; netGrams
         }}
       >
         <Textarea
-          label="E’tiroz sababi"
+          label={t.reason}
           required
           value={dispute.values.reason}
           onChange={(e) => dispute.setValue("reason", e.target.value)}
           error={dispute.fieldErrors.reason}
-          placeholder="Masalan: bizning tarozimizda 190 kg chiqdi"
+          placeholder={t.reasonPlaceholder}
         />
         <KgInput
-          label="Sizningcha sof vazn"
+          label={t.claimed}
           optional
-          hint={netGrams !== null ? `Yig‘uvchi kiritgan: ${formatKg(netGrams)}` : undefined}
+          hint={netGrams !== null ? fmt(t.claimedHint, { kg: formatKgL(netGrams, locale) }) : undefined}
           value={dispute.values.claimedKg}
           onValueChange={(v) => dispute.setValue("claimedKg", v)}
           error={dispute.fieldErrors.claimedKg ?? claimedError}
@@ -77,10 +80,10 @@ export function ConfirmWeighing({ stopId, netGrams }: { stopId: string; netGrams
         <FormStatus form={dispute} />
         <div className="flex flex-col gap-2 sm:flex-row">
           <Button type="submit" variant="danger" size="lg" loading={dispute.pending} icon={<IconAlert />}>
-            E’tirozni yuborish
+            {t.send}
           </Button>
           <Button variant="ghost" size="lg" onClick={() => setMode("choose")} disabled={dispute.pending}>
-            Orqaga
+            {t.back}
           </Button>
         </div>
       </form>
@@ -97,10 +100,10 @@ export function ConfirmWeighing({ stopId, netGrams }: { stopId: string; netGrams
           icon={<IconCheck />}
           onClick={() => void confirm.submit(() => confirmStopWeight({ stopId }))}
         >
-          Tasdiqlayman
+          {t.confirm}
         </Button>
         <Button size="lg" variant="danger" icon={<IconAlert />} onClick={() => setMode("dispute")} disabled={confirm.pending}>
-          E’tiroz bildirish
+          {t.dispute}
         </Button>
       </div>
     </div>

@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { recordWeighing, skipStop } from "@/server/actions/collector";
-import { computeNet, NET_ERROR_TEXT, parseKgToGrams } from "@/domain/weight";
-import { SKIP_REASONS, uzText } from "@/domain/labels";
-import { formatKg } from "@/lib/format";
+import { computeNet, parseKgToGrams } from "@/domain/weight";
+import { uzText } from "@/domain/labels";
+import { formatKgL } from "@/lib/format";
+import { fmt } from "@/i18n/config";
+import { SHOP_DICT } from "@/i18n/shop";
+import { useDict, useLocale } from "@/i18n/LocaleProvider";
 import { routes } from "@/lib/routes";
 import { useActionForm } from "@/lib/client/use-action-form";
 import { FormStatus } from "@/lib/client/FormStatus";
@@ -23,23 +26,25 @@ type Done = { kind: "weighed"; netGrams: number; nextStopId: string | null } | {
  * Saqlangach — natija va «Keyingi nuqta» tugmasi (sahifa yangilansa ham shu komponent turadi).
  */
 export function StopWorkflow({ stopId, canRecord, tripId }: { stopId: string; canRecord: boolean; tripId: string }) {
+  const locale = useLocale();
+  const t = useDict(SHOP_DICT).work;
   const [mode, setMode] = useState<"weigh" | "skip">("weigh");
   const [done, setDone] = useState<Done | null>(null);
 
   if (done) {
     return (
       <>
-        <Notice tone={done.kind === "weighed" ? "success" : "warning"} live="polite" title={done.kind === "weighed" ? `Saqlandi: ${formatKg(done.netGrams)}` : "Nuqta qoldirildi"}>
-          {done.nextStopId ? "Keyingi nuqtaga o‘ting." : "Reys yakunlandi: barcha nuqtalar bajarildi. Kartonni xaridorga topshiring."}
+        <Notice tone={done.kind === "weighed" ? "success" : "warning"} live="polite" title={done.kind === "weighed" ? fmt(t.savedTitle, { kg: formatKgL(done.netGrams, locale) }) : t.skippedTitle}>
+          {done.nextStopId ? t.goNext : t.tripDone}
         </Notice>
         <StickyActionBar>
           {done.nextStopId ? (
             <LinkButton href={routes.collector.stop(done.nextStopId)} size="lg" block icon={<IconChevronRight />}>
-              Keyingi nuqta
+              {t.next}
             </LinkButton>
           ) : (
             <LinkButton href={routes.collector.trip(tripId)} size="lg" block>
-              Reys yakunlandi — tafsilotlar
+              {t.tripDoneLink}
             </LinkButton>
           )}
         </StickyActionBar>
@@ -57,6 +62,8 @@ export function StopWorkflow({ stopId, canRecord, tripId }: { stopId: string; ca
 }
 
 function WeighingForm({ stopId, onDone, onSkip }: { stopId: string; onDone: (d: Done) => void; onSkip: () => void }) {
+  const locale = useLocale();
+  const t = useDict(SHOP_DICT).work;
   const [uploading, setUploading] = useState(false);
   const form = useActionForm<{ grossKg: string; tareKg: string; photoId: string }, { netGrams: number; nextStopId: string | null }>({
     draftKey: `weigh:${stopId}`,
@@ -74,10 +81,10 @@ function WeighingForm({ stopId, onDone, onSkip }: { stopId: string; onDone: (d: 
 
   let grossError: string | null = null;
   let tareError: string | null = null;
-  if (grossParseError) grossError = "Raqamni to‘g‘ri kiriting, masalan 182,4.";
-  else if (tareParseError) tareError = "Raqamni to‘g‘ri kiriting, masalan 2,4.";
+  if (grossParseError) grossError = t.errGross;
+  else if (tareParseError) tareError = t.errTare;
   else if (!net.ok && grossKg.trim() !== "") {
-    const text = uzText(NET_ERROR_TEXT[net.error]);
+    const text = uzText(t.netErrors[net.error]);
     if (net.error === "TARE_EXCEEDS_GROSS" || net.error === "TARE_NEGATIVE" || net.error === "NET_ZERO") tareError = text;
     else grossError = text;
   }
@@ -99,20 +106,20 @@ function WeighingForm({ stopId, onDone, onSkip }: { stopId: string; onDone: (d: 
     >
       <FormStatus form={form} only="draft" />
       <h2 className="flex items-center gap-2 text-lg font-bold">
-        <IconScale /> Tortish
+        <IconScale /> {t.weighing}
       </h2>
       <div className="grid grid-cols-2 gap-3">
         <KgInput
-          label="Brutto"
+          label={t.gross}
           required
           value={grossKg}
           onValueChange={(x) => form.setValue("grossKg", x)}
           error={form.fieldErrors.grossKg ?? grossError}
-          placeholder="182,4"
+          placeholder={t.grossPlaceholder}
         />
         <KgInput
-          label="Tara"
-          hint="Qop, paddon va h.k."
+          label={t.tare}
+          hint={t.tareHint}
           value={tareKg}
           onValueChange={(x) => form.setValue("tareKg", x)}
           error={form.fieldErrors.tareKg ?? tareError}
@@ -121,30 +128,30 @@ function WeighingForm({ stopId, onDone, onSkip }: { stopId: string; onDone: (d: 
       </div>
 
       <Card tone={net.ok ? "primary" : "surface"} className="flex items-baseline justify-between gap-3 py-3">
-        <span className="font-semibold">Sof vazn</span>
+        <span className="font-semibold">{t.net}</span>
         <output aria-live="polite" className="text-3xl font-bold tabular-nums">
-          {net.ok ? formatKg(net.netGrams) : "— kg"}
+          {net.ok ? formatKgL(net.netGrams, locale) : t.noNet}
         </output>
       </Card>
 
       <PhotoInput
         kind="SCALE_PHOTO"
-        label="Tarozi rasmi"
-        hint="Tarozi ko‘rsatkichi ko‘rinib tursin."
+        label={t.scalePhoto}
+        hint={t.scalePhotoHint}
         value={form.values.photoId || null}
         onChange={(id) => form.setValue("photoId", id ?? "")}
         onUploadingChange={setUploading}
       />
 
       <Button variant="secondary" block onClick={onSkip} disabled={form.pending}>
-        Karton tayyor emas
+        {t.notReady}
       </Button>
 
       <FormStatus form={form} only="result" />
 
       <StickyActionBar>
         <Button type="submit" size="lg" block className="min-h-14" loading={form.pending} disabled={!canSubmit}>
-          {uploading ? "Rasm yuklanmoqda…" : "Tortishni saqlash"}
+          {uploading ? t.uploading : t.save}
         </Button>
       </StickyActionBar>
     </form>
@@ -152,13 +159,15 @@ function WeighingForm({ stopId, onDone, onSkip }: { stopId: string; onDone: (d: 
 }
 
 function SkipForm({ stopId, onDone, onBack }: { stopId: string; onDone: (d: Done) => void; onBack: () => void }) {
+  const t = useDict(SHOP_DICT).work;
+  const reasons = t.skipReasons;
   const form = useActionForm<{ reason: string; note: string }, { nextStopId: string | null }>({
     draftKey: `skip:${stopId}`,
-    initialValues: { reason: SKIP_REASONS[0], note: "" },
+    initialValues: { reason: reasons[0], note: "" },
     resetOnSuccess: false,
     onSuccess: (data) => onDone({ kind: "skipped", nextStopId: data.nextStopId }),
   });
-  const isOther = form.values.reason === "Boshqa sabab";
+  const isOther = form.values.reason === reasons[2];
 
   return (
     <form
@@ -168,39 +177,39 @@ function SkipForm({ stopId, onDone, onBack }: { stopId: string; onDone: (d: Done
         e.preventDefault();
         const note = form.values.note.trim();
         if (isOther && note.length < 3) {
-          form.fail("Sababni yozing.", { note: "«Boshqa sabab» tanlansa izoh majburiy." });
+          form.fail(t.errNote, { note: t.errNoteField });
           return;
         }
         const reason = isOther ? note : note ? `${form.values.reason}: ${note}` : form.values.reason;
         void form.submit(() => skipStop({ stopId, reason }));
       }}
     >
-      <h2 className="text-lg font-bold">Nuqtani qoldirish</h2>
-      <p className="text-muted">Buyurtma operator navbatiga qaytadi va boshqa reysga rejalashtiriladi.</p>
+      <h2 className="text-lg font-bold">{t.skipTitle}</h2>
+      <p className="text-muted">{t.skipBody}</p>
       <ChoiceGroup
-        legend="Sabab"
+        legend={t.reason}
         name="skipReason"
         required
         value={form.values.reason}
         onChange={(x) => form.setValue("reason", x)}
-        options={SKIP_REASONS.map((r) => ({ value: r, label: r }))}
+        options={reasons.map((r) => ({ value: r, label: r }))}
       />
       <Textarea
-        label="Izoh"
+        label={t.note}
         required={isOther}
         optional={!isOther}
         value={form.values.note}
         onChange={(e) => form.setValue("note", e.target.value)}
         error={form.fieldErrors.note ?? form.fieldErrors.reason}
-        placeholder="Masalan: ertaga 10:00 dan keyin tayyor bo‘ladi"
+        placeholder={t.notePlaceholder}
       />
       <FormStatus form={form} only="result" />
       <StickyActionBar>
         <Button type="submit" size="lg" variant="danger" block className="min-h-14" loading={form.pending}>
-          Qoldirishni tasdiqlash
+          {t.confirmSkip}
         </Button>
         <Button variant="ghost" block onClick={onBack} disabled={form.pending}>
-          Orqaga — tortishga
+          {t.backToWeigh}
         </Button>
       </StickyActionBar>
     </form>

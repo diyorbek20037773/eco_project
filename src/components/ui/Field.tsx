@@ -3,6 +3,8 @@
 import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 import { cx } from "./cx";
 import { inputClasses } from "./styles";
+import { COMMON_DICT } from "@/i18n/common";
+import { useDict } from "@/i18n/LocaleProvider";
 
 
 interface ShellProps {
@@ -26,11 +28,12 @@ function describedBy(hint: unknown, error: unknown, ids: { hintId: string; error
 }
 
 function Label({ htmlFor, children, required, optional }: { htmlFor: string; children: ReactNode; required?: boolean; optional?: boolean }) {
+  const t = useDict(COMMON_DICT).field;
   return (
     <label htmlFor={htmlFor} className="mb-1 block text-sm font-semibold text-ink">
       {children}
       {required ? <span className="text-danger"> *</span> : null}
-      {optional ? <span className="font-normal text-muted"> (ixtiyoriy)</span> : null}
+      {optional ? <span className="font-normal text-muted"> {t.optional}</span> : null}
     </label>
   );
 }
@@ -158,15 +161,16 @@ export interface KgInputProps extends Omit<TextInputProps, "onChange" | "value" 
 }
 
 /** Vazn: mobil raqam klaviaturasi (decimal), ko‘rinadigan «kg» birligi, «,» va «.» qabul qilinadi. */
-export function KgInput({ value, onValueChange, placeholder = "0,0", ...rest }: KgInputProps) {
+export function KgInput({ value, onValueChange, placeholder, ...rest }: KgInputProps) {
+  const t = useDict(COMMON_DICT).field;
   return (
     <TextInput
       type="text"
       inputMode="decimal"
       autoComplete="off"
       enterKeyHint="next"
-      suffix="kg"
-      placeholder={placeholder}
+      suffix={t.kg}
+      placeholder={placeholder ?? t.kgPlaceholder}
       value={value}
       onChange={(e) => onValueChange(sanitizeKg(e.target.value))}
       inputClassName="text-lg font-semibold"
@@ -182,12 +186,13 @@ export interface SomInputProps extends Omit<TextInputProps, "onChange" | "value"
 
 /** Pul: butun so‘m, raqam klaviaturasi, ko‘rinadigan «so‘m» birligi. */
 export function SomInput({ value, onValueChange, placeholder = "0", ...rest }: SomInputProps) {
+  const t = useDict(COMMON_DICT).field;
   return (
     <TextInput
       type="text"
       inputMode="numeric"
       autoComplete="off"
-      suffix="so‘m"
+      suffix={t.som}
       placeholder={placeholder}
       value={value}
       onChange={(e) => onValueChange(sanitizeSom(e.target.value))}

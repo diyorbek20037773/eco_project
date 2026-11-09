@@ -7,6 +7,8 @@ import { uzText } from "@/domain/labels";
 import { Button } from "./Button";
 import { IconCamera, IconImage, IconRefresh, IconX } from "./icons";
 import { cx } from "./cx";
+import { COMMON_DICT } from "@/i18n/common";
+import { useDict } from "@/i18n/LocaleProvider";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
@@ -32,6 +34,7 @@ export function PhotoInput({
   onUploadingChange?: (uploading: boolean) => void;
 }) {
   const baseId = useId();
+  const t = useDict(COMMON_DICT).upload;
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -64,7 +67,7 @@ export function PhotoInput({
       }
     } catch {
       setStatus("error");
-      setError("Rasm yuklanmadi: internet aloqasini tekshiring va «Qayta yuklash»ni bosing.");
+      setError(t.errNetwork);
       onChange(null);
     } finally {
       onUploadingChange?.(false);
@@ -76,12 +79,12 @@ export function PhotoInput({
     if (!f) return;
     if (!f.type.startsWith("image/")) {
       setStatus("error");
-      setError("Faqat rasm (JPEG, PNG yoki WebP) yuklash mumkin.");
+      setError(t.errType);
       return;
     }
     if (f.size > MAX_BYTES) {
       setStatus("error");
-      setError("Rasm 5 MB dan katta. Kichikroq rasm tanlang yoki kamera sifatini pasaytiring.");
+      setError(t.errSize);
       return;
     }
     setFile(f);
@@ -106,7 +109,7 @@ export function PhotoInput({
   return (
     <fieldset className="min-w-0" aria-describedby={cx(hint && hintId, statusId) || undefined}>
       <legend className="mb-1 text-sm font-semibold">
-        {label} <span className="font-normal text-muted">(ixtiyoriy)</span>
+        {label} <span className="font-normal text-muted">{t.optional}</span>
       </legend>
       {hint ? (
         <p id={hintId} className="mb-2 text-sm text-muted">
@@ -117,7 +120,7 @@ export function PhotoInput({
       <div className="flex flex-wrap items-start gap-3">
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element -- mahalliy blob ko‘rinishi
-          <img src={preview} alt="Tanlangan rasm" className="size-24 rounded-lg border border-line-strong object-cover" />
+          <img src={preview} alt={t.previewAlt} className="size-24 rounded-lg border border-line-strong object-cover" />
         ) : null}
 
         <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:flex-wrap">
@@ -129,7 +132,7 @@ export function PhotoInput({
             )}
           >
             <IconCamera />
-            <span>{preview ? "Qayta suratga olish" : "Suratga olish"}</span>
+            <span>{preview ? t.retake : t.take}</span>
             <input
               ref={cameraRef}
               type="file"
@@ -148,7 +151,7 @@ export function PhotoInput({
             )}
           >
             <IconImage />
-            <span>Galereyadan tanlash</span>
+            <span>{t.gallery}</span>
             <input
               ref={galleryRef}
               type="file"
@@ -160,15 +163,15 @@ export function PhotoInput({
           </label>
           {status === "done" || status === "error" ? (
             <Button variant="ghost" onClick={clear} icon={<IconX />}>
-              Rasmni olib tashlash
+              {t.remove}
             </Button>
           ) : null}
         </div>
       </div>
 
       <div id={statusId} aria-live="polite" className="mt-2 text-sm">
-        {status === "uploading" ? <p className="font-semibold text-muted">Rasm yuklanmoqda…</p> : null}
-        {status === "done" ? <p className="font-semibold text-primary">✓ Rasm yuklandi</p> : null}
+        {status === "uploading" ? <p className="font-semibold text-muted">{t.uploading}</p> : null}
+        {status === "done" ? <p className="font-semibold text-primary">{t.uploaded}</p> : null}
         {status === "error" && error ? (
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-semibold text-danger">
@@ -177,7 +180,7 @@ export function PhotoInput({
             </p>
             {file ? (
               <Button size="sm" variant="secondary" onClick={() => void upload(file)} icon={<IconRefresh size={16} />}>
-                Qayta yuklash
+                {t.retry}
               </Button>
             ) : null}
           </div>
