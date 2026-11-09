@@ -4,7 +4,7 @@
     "buildCommand": "npm run build"
   },
   "deploy": {
-    "startCommand": "sh -c 'node node_modules/prisma/build/index.js migrate deploy && HOSTNAME=0.0.0.0 exec node --max-old-space-size=256 .next/standalone/server.js'",
+    "startCommand": "sh -c 'node scripts/check-env.mjs && node node_modules/prisma/build/index.js migrate deploy && HOSTNAME=0.0.0.0 exec node --max-old-space-size=256 .next/standalone/server.js'",
     "healthcheckPath": "/api/health",
     "healthcheckTimeout": 120,
     "restartPolicyType": "ON_FAILURE",

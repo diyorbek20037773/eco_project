@@ -67,6 +67,8 @@ Repoda `railway.json` bor — Railway uni o‘zi o‘qiydi: build `npm run build
    ```
    Do‘konlar, xodimlar, yig‘uvchilar, xaridor va tarifni operator «Katalog» bo‘limida qo‘shadi.
 
+**Muammo: loglarda `P1001: Can’t reach database server at localhost:5433`.** Bu `DATABASE_URL` berilmaganini bildiradi (ilova standart lokal manzilni sinaydi). Railway’da ilova servisining **Variables** bo‘limida `DATABASE_URL = ${{Postgres.DATABASE_URL}}` qo‘shing (loyihada PostgreSQL servisi bo‘lishi shart) va qayta deploy qiling. Start oldidan `scripts/check-env.mjs` sozlamani tekshiradi va xatoni aniq yozadi; baza kechroq ko‘tarilsa 60 soniyagacha kutadi. Lokal kompyuterda esa bazani ishga tushiring: `npm run db:local` (yoki `docker compose up -d`). Tekshirish: `npm run check:env`.
+
 Boshqa server/konteynerda ham xuddi shunday: `npm ci && npm run build`, so‘ng `npm run start:standalone` (yoki `npm run start`).
 
 Yozuvlar PostgreSQL’da, rasmlar `STORAGE_DIR` (`./storage/uploads`) papkasida — ilova qayta ishga tushganda saqlanadi. Rasmlar ochiq papkada emas, faqat ruxsati bor foydalanuvchiga `/api/files/<id>` orqali beriladi.
