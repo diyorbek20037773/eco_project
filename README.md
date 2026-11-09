@@ -46,7 +46,7 @@ npm run start                    # avval migratsiyalarni qo‘llaydi, so‘ng ht
 `npm run start` platforma bergan `PORT` o‘zgaruvchisini ishlatadi (berilmasa 3000).
 
 ### Railway’ga joylash (kam resurs)
-Repoda `railway.json` bor — Railway uni o‘zi o‘qiydi: build `npm run build`, start esa migratsiyani qo‘llab, **yengil standalone serverni** ishga tushiradi (`node .next/standalone/server.js`, xotira chegarasi 256 MB, `npm` qobig‘isiz), health check — `/api/health`.
+Repoda `Dockerfile` va `railway.json` bor — Railway ularni o‘zi o‘qiydi va **Dockerfile** bilan build qiladi (Railpack/mise kerak emas: hamma narsa Docker Hub `node:22-alpine` va npm’dan olinadi). Obraz ko‘p bosqichli: ishlaydigan qismida faqat yengil standalone server (+ migratsiya uchun Prisma CLI). Har ishga tushishda: sozlama tekshiruvi → migratsiya → server (256 MB heap). Health check — `/api/health`. Lokal Docker’da o‘lchangan: ishlab turgan konteyner ~150 MiB xotira, bo‘sh holatda CPU ≈ 0%.
 
 1. Railway’da loyiha → **Deploy from GitHub repo** → shu repo. Yoniga **PostgreSQL** servisini qo‘shing.
 2. Ilova servisining **Variables** bo‘limi:
@@ -55,17 +55,17 @@ Repoda `railway.json` bor — Railway uni o‘zi o‘qiydi: build `npm run build
    | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` (Railway havolasi) |
    | `SESSION_SECRET` | ≥ 32 tasodifiy belgi (standart qiymat bilan ilova ishlamaydi) |
    | `APP_URL` | `https://<sizning-domeningiz>.up.railway.app` |
-   | `STORAGE_DIR` | `/data/uploads` (absolyut yo‘l, volume ichida) |
-   | `DEMO_MODE` | `false` |
-   | `NEXT_TELEMETRY_DISABLED` | `1` |
    | `DATABASE_POOL_MAX` | `3` (ixtiyoriy; standart 5) |
+   `STORAGE_DIR` obrazda `/data/uploads` deb o‘rnatilgan, `NODE_ENV=production`, telemetriya o‘chiq.
 3. **Volume** qo‘shing va `/data` ga ulang — aks holda qayta joylashda yuklangan rasmlar o‘chadi.
 4. Resursni tejash: servis **Settings → Serverless (App Sleeping)** ni yoqing — so‘rov bo‘lmaganda ilova uxlaydi, birinchi so‘rovda bir necha soniyada uyg‘onadi. Replikalar soni 1.
-5. **Production’da demo akkauntlar ishlamaydi** (talab bo‘yicha). Birinchi operatorni Railway servis terminalida (yoki `railway run`) yarating:
+5. **Production’da demo akkauntlar ishlamaydi** (talab bo‘yicha). Birinchi operatorni Railway’da servis → **⋯ → Shell** (yoki `railway ssh`) orqali yarating:
    ```bash
-   NEW_USER_PASSWORD=kamida-10-belgili-parol npm run user:create -- --role OPERATOR --login operator1 --name "Operator ismi"
+   NEW_USER_PASSWORD='kamida-10-belgili-parol' node scripts/create-user.mjs --role OPERATOR --login operator1 --name "Operator ismi"
    ```
    Do‘konlar, xodimlar, yig‘uvchilar, xaridor va tarifni operator «Katalog» bo‘limida qo‘shadi.
+
+**Muammo: build’da `failed to ensure mise is installed … 504 Gateway Timeout`.** Bu Railpack’ning GitHub’dan yuklashidagi vaqtinchalik nosozlik. Endi repoda Dockerfile bo‘lgani uchun Railpack ishlatilmaydi; eski deploy uchun **Redeploy** yetarli.
 
 **Muammo: loglarda `P1001: Can’t reach database server at localhost:5433`.** Bu `DATABASE_URL` berilmaganini bildiradi (ilova standart lokal manzilni sinaydi). Railway’da ilova servisining **Variables** bo‘limida `DATABASE_URL = ${{Postgres.DATABASE_URL}}` qo‘shing (loyihada PostgreSQL servisi bo‘lishi shart) va qayta deploy qiling. Start oldidan `scripts/check-env.mjs` sozlamani tekshiradi va xatoni aniq yozadi; baza kechroq ko‘tarilsa 60 soniyagacha kutadi. Lokal kompyuterda esa bazani ishga tushiring: `npm run db:local` (yoki `docker compose up -d`). Tekshirish: `npm run check:env`.
 

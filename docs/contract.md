@@ -79,7 +79,7 @@ Demo ma’lumot: kechagi namunaviy reys (180/160/160 → 470 kg, xarajat 300 000
 | Egasi | Fayllar |
 |---|---|
 | orkestrator | `package.json`, konfiglar, `src/server/contract.ts`, `src/lib/routes.ts`, `src/lib/format.ts`, `src/domain/{money,weight,time}.ts`, `docs/contract.md`, `README.md` |
-| operations-engineer | `prisma/**`, `src/domain/{settlement,transitions,errors}.ts`, `src/lib/{db,storage}.ts`, `src/lib/auth/**`, `src/server/**` (contract’dan tashqari), `src/app/api/**`, `scripts/create-user.ts`, `tests/unit/**`, `tests/db/**`, `vitest.config.ts` |
+| operations-engineer | `prisma/**`, `src/domain/{settlement,transitions,errors}.ts`, `src/lib/{db,storage}.ts`, `src/lib/auth/**`, `src/server/**` (contract’dan tashqari), `src/app/api/**`, `scripts/create-user.mjs`, `tests/unit/**`, `tests/db/**`, `vitest.config.ts` |
 | interface-engineer | `src/app/**` (`api`dan tashqari), `src/components/**`, `src/domain/labels.ts`, `src/lib/client/**`, `public/**` |
 | pilot-reviewer | `tests/e2e/**`, `playwright.config.ts`, `docs/review/**` |
 

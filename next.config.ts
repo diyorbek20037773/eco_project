@@ -9,6 +9,8 @@ export default function config(phase: string): NextConfig {
     // Faqat build bosqichida: dev rejimida standalone Fast Refresh'ni cheksiz qayta yuklashga olib keladi.
     output: phase === PHASE_PRODUCTION_BUILD ? "standalone" : undefined,
     serverExternalPackages: ["pg", "@prisma/adapter-pg"],
+    // next/image ishlatilmaydi; rasmlar /api/files orqali ruxsat bilan beriladi — sharp kerak emas.
+    images: { unoptimized: true },
     experimental: {
       serverActions: { bodySizeLimit: "8mb" },
     },

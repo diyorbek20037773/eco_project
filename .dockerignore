@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+.local
+.env
+.env.*
+!.env.example
+storage
+src/generated
+test-results
+playwright-report
+coverage
+*.tsbuildinfo
+AGENTS.md
+.vscode
+.claude
+docs/review

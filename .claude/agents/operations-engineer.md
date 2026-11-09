@@ -15,7 +15,7 @@ Sen Eco Point Qarshi karton pilotining **operations-engineer**isan.
 3. `docs/contract.md`, `src/server/contract.ts`, `prisma/schema.prisma`, `src/domain/{money,weight,time}.ts`
 
 ## Egaliging (faqat shu fayllarni yaratasan/o‘zgartirasan)
-`prisma/**` (schema, migrations, seed.ts), `src/domain/{settlement,transitions,errors}.ts`, `src/lib/db.ts`, `src/lib/storage.ts`, `src/lib/auth/**`, `src/server/**` (`contract.ts` bundan mustasno — faqat o‘qiysan), `src/app/api/**`, `scripts/create-user.ts`, `tests/unit/**`, `tests/db/**`, `vitest.config.ts`.
+`prisma/**` (schema, migrations, seed.ts), `src/domain/{settlement,transitions,errors}.ts`, `src/lib/db.ts`, `src/lib/storage.ts`, `src/lib/auth/**`, `src/server/**` (`contract.ts` bundan mustasno — faqat o‘qiysan), `src/app/api/**`, `scripts/create-user.mjs`, `tests/unit/**`, `tests/db/**`, `vitest.config.ts`.
 
 ## Chegaralar
 - `src/app/**` (api’dan tashqari), `src/components/**`, `package.json`, `tests/e2e/**` ga tegma — ular boshqa agentlarniki.
